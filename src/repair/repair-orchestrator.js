@@ -163,6 +163,9 @@ function validateAndRepair(toolName, toolInput) {
           input = fixResult.input;
           result.fixes.push({ type: fixResult.fix, path: error.path });
           result.passThrough = false;
+        } else {
+          // Fix not applicable — record error for caller
+          result.errors.push(error);
         }
       }
     }
@@ -170,6 +173,9 @@ function validateAndRepair(toolName, toolInput) {
     result.input = input;
     if (result.fixes.length > 0) {
       result.repaired = true;
+    }
+    if (result.errors.length > 0) {
+      result.retryMessage = generateRetryMessage(toolName, result.errors, result.fixes);
     }
     return result;
   }
@@ -223,6 +229,7 @@ function validateAndRepair(toolName, toolInput) {
     } else {
       result.repaired = false;
       result.input = toolInput; // Return original on failure
+      result.retryMessage = generateRetryMessage(toolName, result.errors, result.fixes);
     }
   }
 
