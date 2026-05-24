@@ -37,6 +37,8 @@ toolrepair: all checks passed.
 
 > **30 seconds to install. 6 repair types. Zero dependencies.**
 
+[中文文档](README.zh-CN.md) | [English](README.md)
+
 Auto-repair DeepSeek V4 tool-calling quirks in Claude Code CLI and OpenCode.
 
 Based on [Ahmad Awais](https://x.com/MrAhmadAwais)'s research: a tool-input repair layer made DeepSeek V4 Pro beat Opus 4.7 **6/10 times** in internal evals.
