@@ -11,25 +11,26 @@ const { fixAutolinksInPaths } = require('./autolink-fix');
 const { applyRelationalFixes } = require('./relational-fix');
 
 // Simple schema registry for known tool fields
-// Maps field paths to expected types: 'string', 'array', 'object', etc.
+// Maps field paths to expected types: 'string', 'array', 'object', 'path', etc.
+// 'path' = string that represents a file path — gets autolink detection + traversal check
 const toolSchemas = {
   read_file: {
-    file_path: 'string',
+    file_path: 'path',
     offset: 'number',
     limit: 'number',
   },
   write_to_file: {
-    file_path: 'string',
+    file_path: 'path',
     content: 'string',
   },
   edit_file: {
-    file_path: 'string',
+    file_path: 'path',
     old_string: 'string',
     new_string: 'string',
     replace_all: 'boolean',
   },
   search_content: {
-    directory: 'string',
+    directory: 'path',
     pattern: 'string',
     file_types: 'string',
     output_mode: 'string',
@@ -39,7 +40,7 @@ const toolSchemas = {
     requires_approval: 'boolean',
   },
   list_files: {
-    target_directory: 'string',
+    target_directory: 'path',
     depth: 'number',
     offset: 'number',
     limit: 'number',
@@ -81,6 +82,9 @@ function validateField(input, schema) {
     }
     if (expectedType === 'string' && typeof val !== 'string') {
       errors.push({ path: key, expected: 'string', received: typeof val });
+    }
+    if (expectedType === 'path' && typeof val !== 'string') {
+      errors.push({ path: key, expected: 'path', received: typeof val });
     }
     if (expectedType === 'number' && typeof val !== 'number') {
       errors.push({ path: key, expected: 'number', received: typeof val });
