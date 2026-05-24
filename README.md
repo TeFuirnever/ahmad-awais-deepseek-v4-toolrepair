@@ -11,6 +11,32 @@ Install in 30 seconds. Zero dependencies.
 [![GitHub stars](https://img.shields.io/github/stars/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair)](https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair)](https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/issues)
 
+### Quick Demo
+
+```console
+$ npx ahmad-awais-deepseek-v4-toolrepair install
+toolrepair: installing for platforms: claude-code, opencode
+toolrepair: global install
+
+  claude-code: installed rules, hook
+  opencode: installed rules, plugin
+
+$ npx ahmad-awais-deepseek-v4-toolrepair verify
+
+toolrepair: claude-code verification
+  ✓ hook-registered: OK
+  ✓ hook-script: OK (sha256: a1b2c3d4...)
+  ✓ claude-md-rules: OK
+toolrepair: opencode verification
+  ✓ plugin-registered: OK
+  ✓ plugin-script: OK
+  ✓ rules: OK
+
+toolrepair: all checks passed.
+```
+
+> **30 seconds to install. 6 repair types. Zero dependencies.**
+
 Auto-repair DeepSeek V4 tool-calling quirks in Claude Code CLI and OpenCode.
 
 Based on [Ahmad Awais](https://x.com/MrAhmadAwais)'s research: a tool-input repair layer made DeepSeek V4 Pro beat Opus 4.7 **6/10 times** in internal evals.
