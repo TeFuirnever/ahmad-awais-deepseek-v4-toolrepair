@@ -52,7 +52,7 @@ function getSchema(toolName) {
 
 function tryParse(input) {
   // If input is already an object, validate with known schema
-  if (typeof input === 'object' && input !== null) {
+  if (typeof input === 'object' && input !== null && !Array.isArray(input)) {
     return { valid: true, input, errors: [] };
   }
   // If input is a string, try JSON parse
@@ -68,6 +68,9 @@ function tryParse(input) {
 }
 
 function validateField(input, schema) {
+  if (input === null || typeof input !== 'object' || Array.isArray(input)) {
+    return [{ path: '', expected: 'object', received: input === null ? 'null' : typeof input }];
+  }
   const errors = [];
   for (const [key, expectedType] of Object.entries(schema)) {
     const val = input[key];
@@ -152,6 +155,7 @@ function validateAndRepair(toolName, toolInput) {
   }
 
   // Step 2: Parse failed — try shape fixes
+  result.passThrough = false;
   let input = parsed.input;
   const schema = getSchema(toolName);
 
@@ -167,7 +171,12 @@ function validateAndRepair(toolName, toolInput) {
           result.fixes.push({ type: fixResult.fix, path: error.path });
         }
       }
+    } else {
+      // No schema-level errors found — keep parse errors for non-object inputs
+      result.errors = parsed.errors;
     }
+  } else {
+    result.errors = parsed.errors;
   }
 
   // Step 2a: Also try autolink fix

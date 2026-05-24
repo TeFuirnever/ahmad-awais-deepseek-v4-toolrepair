@@ -1,7 +1,5 @@
 // Main uninstaller — detects platform and delegates.
 const path = require('path');
-const os = require('os');
-const fs = require('fs');
 
 async function uninstall(options = {}) {
   const cwd = process.cwd();
@@ -22,6 +20,11 @@ async function uninstall(options = {}) {
   for (const platform of platforms) {
     let uninstaller;
     try {
+      const ALLOWED_PLATFORMS = ['claude-code', 'opencode'];
+      if (!ALLOWED_PLATFORMS.includes(platform)) {
+        console.error(`toolrepair: invalid platform "${platform}" — skipping`);
+        continue;
+      }
       uninstaller = require(`./platforms/${platform}/uninstall`);
     } catch (e) {
       console.error(`toolrepair: no uninstaller for platform "${platform}" — skipping`);

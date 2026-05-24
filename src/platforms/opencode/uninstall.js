@@ -2,27 +2,8 @@
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-
-const RULES_MARKER_START = '<!-- TOOLREPAIR-START -->';
-const RULES_MARKER_END = '<!-- TOOLREPAIR-END -->';
-const PLUGIN_NAME = 'ahmad-awais-deepseek-v4-toolrepair/opencode';
-
-function backupFile(filePath, skipBackup) {
-  if (skipBackup || !fs.existsSync(filePath)) return;
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const backupPath = `${filePath}.backup.${timestamp}`;
-  fs.copyFileSync(filePath, backupPath);
-  return backupPath;
-}
-
-function atomicWrite(filePath, content) {
-  const tmpPath = `${filePath}.tmp.${process.pid}`;
-  fs.writeFileSync(tmpPath, content, 'utf8');
-  if (filePath.endsWith('.json')) {
-    JSON.parse(content);
-  }
-  fs.renameSync(tmpPath, filePath);
-}
+const { backupFile, atomicWrite } = require('../../utils/fs-utils');
+const { RULES_MARKER_START, RULES_MARKER_END, PLUGIN_NAME } = require('../../constants');
 
 function uninstallPlugin(opencodeConfigPath, projectDir, skipBackup) {
   if (!fs.existsSync(opencodeConfigPath)) {

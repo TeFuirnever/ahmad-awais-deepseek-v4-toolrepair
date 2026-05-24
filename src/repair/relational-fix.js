@@ -5,9 +5,11 @@ function fixReadFileInvariants(input) {
   const notes = [];
   const fixed = { ...input };
 
+  const DEFAULT_READ_LIMIT = 2000;
+
   // If offset present but no limit → set default limit
   if (fixed.offset !== undefined && fixed.limit === undefined) {
-    fixed.limit = 2000; // Match common Read tool default
+    fixed.limit = DEFAULT_READ_LIMIT; // Match common Read tool default
     notes.push('limit defaulted to 2000 lines (offset was specified without limit). To read more/fewer lines, specify both offset and limit.');
   }
 

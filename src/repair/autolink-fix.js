@@ -11,8 +11,8 @@ function fixMarkdownAutolink(value) {
 
   const extracted = match[1];
 
-  // Security: reject extracted paths with control chars, HTML, or prompt injection patterns
-  if (/[\x00-\x1f<>]/.test(extracted)) return { fixed: false, value };
+  // Security: reject path traversal, control chars, HTML, or prompt injection patterns
+  if (/[\x00-\x1f<>]/.test(extracted) || extracted.includes('..')) return { fixed: false, value };
 
   return { fixed: true, value: extracted, fix: 'autolink' };
 }

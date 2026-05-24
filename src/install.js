@@ -60,6 +60,11 @@ async function install(options = {}) {
   const pluginOnly = options.pluginOnly;
 
   for (const platform of platforms) {
+    const ALLOWED_PLATFORMS = ['claude-code', 'opencode'];
+    if (!ALLOWED_PLATFORMS.includes(platform)) {
+      console.error(`toolrepair: invalid platform "${platform}" — skipping`);
+      continue;
+    }
     let installer;
     try {
       installer = require(`./platforms/${platform}/install`);

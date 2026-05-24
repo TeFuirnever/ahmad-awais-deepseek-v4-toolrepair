@@ -3,10 +3,7 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 const crypto = require('crypto');
-
-const RULES_MARKER_START = '<!-- TOOLREPAIR-START -->';
-const RULES_MARKER_END = '<!-- TOOLREPAIR-END -->';
-const PLUGIN_NAME = 'ahmad-awais-deepseek-v4-toolrepair/opencode';
+const { RULES_MARKER_START, RULES_MARKER_END, PLUGIN_NAME } = require('./constants');
 
 function sha256(filePath) {
   if (!fs.existsSync(filePath)) return null;
