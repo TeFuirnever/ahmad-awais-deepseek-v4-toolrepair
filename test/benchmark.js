@@ -5,8 +5,8 @@ const { validateAndRepair } = require('../src/repair/repair-orchestrator');
 const scenarios = [
   // remove-nulls
   { tool: 'read_file', input: { file_path: '/tmp/test', offset: null, limit: null }, expectFix: 'remove-nulls' },
-  // parse-json-array
-  { tool: 'execute_command', input: { command: '["ls","-la"]', requires_approval: false }, expectRepaired: true },
+  // parse-json-array: args is array-typed, JSON string should parse
+  { tool: 'execute_command', input: { command: 'ls', args: '["--color","--all"]' }, expectFix: 'parse-json-array' },
   // wrap-single-object: { args: {} } → should wrap to [{}]
   { tool: 'execute_command', input: { command: 'ls', args: {} }, expectFix: 'wrap-single-object' },
   // wrap-bare-string: { args: "foo" } → should wrap to ["foo"]

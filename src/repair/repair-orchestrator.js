@@ -46,6 +46,11 @@ const toolSchemas = {
     offset: 'number',
     limit: 'number',
   },
+  Read: {
+    file_path: 'path',
+    offset: 'number',
+    limit: 'number',
+  },
 };
 
 function getSchema(toolName) {
@@ -122,22 +127,9 @@ function validateAndRepair(toolName, toolInput) {
       result.passThrough = false;
     }
 
-    // Step 1b: Parse JSON strings that look like arrays
-    for (const [key, val] of Object.entries(input)) {
-      if (typeof val === 'string' && val.trim().startsWith('[')) {
-        try {
-          const parsed = JSON.parse(val);
-          if (Array.isArray(parsed)) {
-            input[key] = parsed;
-            result.fixes.push({ type: 'parse-json-array', path: key });
-            result.passThrough = false;
-          }
-        } catch (_) {}
-      }
-    }
-
-    // Step 1c: Fix autolinks in all string fields
-    const autolinkResult = fixAutolinksInPaths(input);
+    // Step 1b: Fix autolinks in path-typed fields only
+    const schema = getSchema(toolName);
+    const autolinkResult = fixAutolinksInPaths(input, schema);
     if (autolinkResult.fixed) {
       input = autolinkResult.input;
       result.fixes.push({ type: 'autolink', fields: autolinkResult.fixes });
@@ -154,7 +146,6 @@ function validateAndRepair(toolName, toolInput) {
 
     // Step 1e: Fix field-level type mismatches against schema
     // Handles wrap-single-object / wrap-bare-string for array-typed fields
-    const schema = getSchema(toolName);
     if (schema) {
       const errors = validateField(input, schema);
       for (const error of errors) {
@@ -206,7 +197,7 @@ function validateAndRepair(toolName, toolInput) {
   }
 
   // Step 2a: Also try autolink fix
-  const autolinkResult = fixAutolinksInPaths(input);
+  const autolinkResult = fixAutolinksInPaths(input, schema);
   if (autolinkResult.fixed) {
     input = autolinkResult.input;
     result.fixes.push({ type: 'autolink', fields: autolinkResult.fixes });
@@ -247,6 +238,11 @@ function generateRetryMessage(toolName, errors, fixes) {
     lines.push('Auto-repair attempted:');
     for (const fix of fixes) {
       lines.push(`- Applied: ${fix.type} on ${fix.path || fix.fields?.join(', ') || 'input'}`);
+      if (fix.notes) {
+        for (const note of fix.notes) {
+          lines.push(`  Note: ${note}`);
+        }
+      }
     }
   }
   lines.push('Please retry with corrected format.');
@@ -256,7 +252,7 @@ function generateRetryMessage(toolName, errors, fixes) {
 // Safe telemetry — only metadata, never values
 function logTelemetry(telemetry) {
   console.error(JSON.stringify({
-    event: 'tool_input_processed',
+    event: telemetry.repaired ? 'tool_input_repaired' : 'tool_input_invalid',
     tool: telemetry.tool,
     repaired: telemetry.repaired,
     pass_through: telemetry.passThrough,

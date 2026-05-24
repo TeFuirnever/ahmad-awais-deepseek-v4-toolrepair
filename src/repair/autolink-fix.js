@@ -17,27 +17,60 @@ function fixMarkdownAutolink(value) {
   return { fixed: true, value: extracted, fix: 'autolink' };
 }
 
-function fixAutolinksInPaths(input) {
+function fixAutolinksInPaths(input, schema) {
+  if (typeof input !== 'object' || input === null) {
+    return { fixed: false, input, fixes: [], fix: 'autolink' };
+  }
+
   let changed = false;
   const fixes = [];
 
-  function walk(obj) {
-    if (typeof obj !== 'object' || obj === null) return;
-    for (const [key, val] of Object.entries(obj)) {
-      if (typeof val === 'string') {
-        const result = fixMarkdownAutolink(val);
+  if (schema) {
+    for (const [key, type] of Object.entries(schema)) {
+      if (type === 'path' && typeof input[key] === 'string') {
+        const result = fixMarkdownAutolink(input[key]);
         if (result.fixed) {
-          obj[key] = result.value;
+          input[key] = result.value;
           changed = true;
           fixes.push(key);
         }
-      } else if (typeof val === 'object' && val !== null) {
-        walk(val);
       }
     }
+  } else {
+    // Unknown tool — fall back to walk all string fields
+    function walk(obj) {
+      if (typeof obj !== 'object' || obj === null) return;
+      if (Array.isArray(obj)) {
+        for (let i = 0; i < obj.length; i++) {
+          if (typeof obj[i] === 'string') {
+            const result = fixMarkdownAutolink(obj[i]);
+            if (result.fixed) {
+              obj[i] = result.value;
+              changed = true;
+              fixes.push(`[${i}]`);
+            }
+          } else if (typeof obj[i] === 'object' && obj[i] !== null) {
+            walk(obj[i]);
+          }
+        }
+        return;
+      }
+      for (const [key, val] of Object.entries(obj)) {
+        if (typeof val === 'string') {
+          const result = fixMarkdownAutolink(val);
+          if (result.fixed) {
+            obj[key] = result.value;
+            changed = true;
+            fixes.push(key);
+          }
+        } else if (typeof val === 'object' && val !== null) {
+          walk(val);
+        }
+      }
+    }
+    walk(input);
   }
 
-  walk(input);
   return { fixed: changed, input, fixes, fix: 'autolink' };
 }
 
