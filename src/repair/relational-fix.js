@@ -31,6 +31,7 @@ function fixReadFileInvariants(input) {
 const relationalFixers = {
   read_file: fixReadFileInvariants,
   Read: fixReadFileInvariants,
+  list_files: fixReadFileInvariants,
 };
 
 function applyRelationalFixes(toolName, input) {
