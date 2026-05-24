@@ -7,10 +7,13 @@ const scenarios = [
   { tool: 'read_file', input: { file_path: '/tmp/test', offset: null, limit: null }, expectFix: 'remove-nulls' },
   // parse-json-array
   { tool: 'execute_command', input: { command: '["ls","-la"]', requires_approval: false }, expectRepaired: true },
-  // wrap-single-object
+  // wrap-single-object: tests applyFixesForPath directly (no array fields in schema)
+  // wrap-bare-string: tests applyFixesForPath directly (no array fields in schema)
+  // Note: wrap fixes reachable only via shape-fixes unit tests, not validateAndRepair
+  // because toolSchemas has zero array-typed fields. See /review audit.
+  // Passthrough scenarios verify no false positives on valid input
   { tool: 'read_file', input: { file_path: '/tmp/test' }, expectPassThrough: true },
-  // wrap-bare-string
-  { tool: 'read_file', input: { file_path: '/tmp/test' }, expectPassThrough: true },
+  { tool: 'write_to_file', input: { file_path: '/tmp/ok.txt', content: 'hello' }, expectPassThrough: true },
   // autolink
   { tool: 'write_to_file', input: { file_path: '[notes.md](http://notes.md)', content: 'test' }, expectFix: 'autolink' },
   // relational
