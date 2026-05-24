@@ -76,6 +76,12 @@ Based on Ahmad Awais's research: making DeepSeek V4 beat Opus 4.7 by auto-repair
 const flags = parseFlags(args.slice(1));
 
 switch (command) {
+  case 'version':
+  case '--version':
+  case '-v':
+    console.log(pkg.version);
+    process.exit(0);
+
   case 'install': {
     const { install } = require('../src/install');
     install({
