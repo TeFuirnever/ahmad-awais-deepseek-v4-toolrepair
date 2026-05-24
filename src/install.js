@@ -2,6 +2,7 @@
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
+const { ALLOWED_PLATFORMS } = require('./constants');
 
 const CLAUDE_CODE_PATHS = {
   settings: path.join(os.homedir(), '.claude', 'settings.json'),
@@ -60,7 +61,6 @@ async function install(options = {}) {
   const pluginOnly = options.pluginOnly;
 
   for (const platform of platforms) {
-    const ALLOWED_PLATFORMS = ['claude-code', 'opencode'];
     if (!ALLOWED_PLATFORMS.includes(platform)) {
       console.error(`toolrepair: invalid platform "${platform}" — skipping`);
       continue;

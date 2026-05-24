@@ -3,7 +3,7 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 const crypto = require('crypto');
-const { RULES_MARKER_START, RULES_MARKER_END, PLUGIN_NAME } = require('./constants');
+const { RULES_MARKER_START, RULES_MARKER_END, PLUGIN_NAME, ALLOWED_PLATFORMS } = require('./constants');
 
 function sha256(filePath) {
   if (!fs.existsSync(filePath)) return null;
@@ -120,6 +120,11 @@ async function verify(options = {}) {
 
   let platforms;
   if (options.platform) {
+    if (!ALLOWED_PLATFORMS.includes(options.platform)) {
+      console.error(`toolrepair: invalid platform "${options.platform}"`);
+      process.exitCode = 1;
+      return;
+    }
     platforms = [options.platform];
   } else {
     platforms = ['claude-code', 'opencode'];

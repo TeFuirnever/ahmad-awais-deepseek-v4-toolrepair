@@ -6,7 +6,7 @@
 // 2. If failure → iterate validator issues, try 4 fixes in order
 // 3. Re-parse → success = log tool_input_repaired, failure = return errors
 
-const { applyFixesForPath } = require('./shape-fixes');
+const { applyFixesForPath, removeNulls } = require('./shape-fixes');
 const { fixAutolinksInPaths } = require('./autolink-fix');
 const { applyRelationalFixes } = require('./relational-fix');
 
@@ -110,7 +110,7 @@ function validateAndRepair(toolName, toolInput) {
     let input = parsed.input;
 
     // Step 1a: Remove nulls from all objects (safe — just strips null optional fields)
-    const nullResult = require('./shape-fixes').removeNulls(input);
+    const nullResult = removeNulls(input);
     if (nullResult.fixed) {
       input = nullResult.input;
       result.fixes.push({ type: 'remove-nulls' });

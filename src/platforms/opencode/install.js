@@ -15,11 +15,23 @@ function installPlugin(opencodeConfigPath, projectDir, sourceDir, skipBackup) {
     fs.mkdirSync(pluginDir, { recursive: true });
   }
 
-  // Copy plugin
+  // Copy plugin and its repair engine dependency
   const pluginSrc = path.join(sourceDir, 'src', 'platforms', 'opencode', 'plugin', 'tool-repair-plugin.js');
   const pluginDest = path.join(pluginDir, 'tool-repair-plugin.js');
   fs.copyFileSync(pluginSrc, pluginDest);
   fs.chmodSync(pluginDest, 0o444);
+
+  // Copy shared repair engine alongside plugin
+  const repairSrc = path.join(sourceDir, 'src', 'repair');
+  const repairDest = path.join(pluginDir, 'repair');
+  if (!fs.existsSync(repairDest)) {
+    fs.mkdirSync(repairDest, { recursive: true });
+  }
+  for (const file of fs.readdirSync(repairSrc)) {
+    if (file.endsWith('.js')) {
+      fs.copyFileSync(path.join(repairSrc, file), path.join(repairDest, file));
+    }
+  }
 
   // Update opencode.json
   backupFile(opencodeConfigPath, skipBackup);

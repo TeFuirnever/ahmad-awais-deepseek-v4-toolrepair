@@ -20,10 +20,14 @@ function uninstallPlugin(opencodeConfigPath, projectDir, skipBackup) {
   config.plugin = config.plugin.filter(p => p !== PLUGIN_NAME);
   atomicWrite(opencodeConfigPath, JSON.stringify(config, null, 2));
 
-  // Remove plugin file
+  // Remove plugin file and its repair engine dependency
   const pluginPath = path.join(projectDir, '.opencode', 'plugin', 'tool-repair-plugin.js');
+  const repairDir = path.join(projectDir, '.opencode', 'plugin', 'repair');
   if (fs.existsSync(pluginPath)) {
     fs.unlinkSync(pluginPath);
+  }
+  if (fs.existsSync(repairDir)) {
+    fs.rmSync(repairDir, { recursive: true, force: true });
   }
 
   return { removed: true };

@@ -6,9 +6,8 @@
  * @type {import("@opencode-ai/plugin").Plugin}
  */
 module.exports = async function ToolRepairPlugin({ project, client, $, directory }) {
-  // Load the shared repair engine
-  const repairDir = require('path').resolve(__dirname, '..', '..', '..', 'repair');
-  const { validateAndRepair, logTelemetry } = require(repairDir + '/repair-orchestrator');
+  // Load the shared repair engine (copied alongside plugin at install time)
+  const { validateAndRepair, logTelemetry } = require('./repair/repair-orchestrator');
 
   return {
     // MAIN: Repair tool inputs BEFORE execution
