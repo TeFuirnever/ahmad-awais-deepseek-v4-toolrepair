@@ -81,7 +81,7 @@ Based on [Ahmad Awais](https://x.com/MrAhmadAwais)'s research: a tool-input repa
 Open-source models (DeepSeek, GLM, Qwen) make predictable tool-calling format errors:
 
 1. Sending `null` instead of omitting optional fields
-2. Outputting `'["a","b"]'` as a JSON string instead of an actual array
+2. Outputting `'["a","b"]'` as a JSON string instead of an actual array (in array-typed fields)
 3. Wrapping single params in `{}` when schema expects an array
 4. Passing bare strings instead of arrays (`"foo"` not `["foo"]`)
 5. Formatting file paths as markdown autolinks: `[notes.md](http://notes.md)`
@@ -182,7 +182,7 @@ Tool call arrives
 | Order | Fix | Example |
 |-------|-----|---------|
 | 1 | `remove-nulls` | `{ offset: null }` → `{}` |
-| 2 | `parse-json-array` | `{ cmd: '["ls"]' }` → `{ cmd: ["ls"] }` |
+| 2 | `parse-json-array` | `{ args: '["ls"]' }` → `{ args: ["ls"] }` (array-typed fields only) |
 | 3 | `wrap-single-object` | `{ input: {} }` → `{ input: [{}] }` |
 | 4 | `wrap-bare-string` | `{ input: "foo" }` → `{ input: ["foo"] }` |
 

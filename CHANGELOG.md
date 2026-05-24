@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.1.0 (2025-05-25)
+
+### Breaking Changes
+
+- **Removed Step 1b blind JSON-array parse** — Previously ALL string fields were scanned for JSON arrays regardless of schema type, causing data corruption: `write_to_file.content` containing `'["hello","world"]'` was silently parsed to array, `execute_command.command` produced contradictory `repaired:true` + `errors` state. The `parseJsonArray` in `applyFixesForPath` (Step 1e) already handles array-typed fields correctly via schema validation.
+
+### Fixed
+
+- **Autolink fix scoped to `path`-typed fields only** — Previously applied to all string fields, corrupting content like `[readme.md](http://readme.md)` in `write_to_file.content`. Now uses schema to target only `path`-typed fields. Unknown tools fall back to walk-all.
+- **Benchmark false positive** — scenario tested string-typed `command` field instead of array-typed `args`.
+
+### Added
+
+- `Read` alias in `toolSchemas` — schema validation works for both `read_file` and `Read`.
+- `list_files` added to relational fixers — `offset` without `limit` defaults `limit: 2000`.
+- Relational fix notes surfaced in `generateRetryMessage` — model sees what was inferred.
+- Telemetry events split: `tool_input_repaired` vs `tool_input_invalid`.
+- 10 regression tests: content integrity, notes surfacing, Read alias, list_files relational.
+
 ## v1.0.0 (2025-05-24)
 
 ### Initial Release

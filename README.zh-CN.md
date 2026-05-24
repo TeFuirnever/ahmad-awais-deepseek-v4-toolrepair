@@ -116,7 +116,7 @@ npx ahmad-awais-deepseek-v4-toolrepair uninstall
 | 顺序 | 修复 | 示例 |
 |------|------|------|
 | 1 | `remove-nulls` | `{ offset: null }` → `{}` |
-| 2 | `parse-json-array` | `{ cmd: '["ls"]' }` → `{ cmd: ["ls"] }` |
+| 2 | `parse-json-array` | `{ args: '["ls"]' }` → `{ args: ["ls"] }`（仅 array 类型字段） |
 | 3 | `wrap-single-object` | `{ input: {} }` → `{ input: [{}] }` |
 | 4 | `wrap-bare-string` | `{ input: "foo" }` → `{ input: ["foo"] }` |
 
