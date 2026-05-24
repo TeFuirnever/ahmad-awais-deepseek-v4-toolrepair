@@ -37,6 +37,7 @@ const toolSchemas = {
   },
   execute_command: {
     command: 'string',
+    args: 'array',
     requires_approval: 'boolean',
   },
   list_files: {
@@ -149,6 +150,21 @@ function validateAndRepair(toolName, toolInput) {
       input = relationResult.input;
       result.fixes.push({ type: 'relational', notes: relationResult.notes });
       result.passThrough = false;
+    }
+
+    // Step 1e: Fix field-level type mismatches against schema
+    // Handles wrap-single-object / wrap-bare-string for array-typed fields
+    const schema = getSchema(toolName);
+    if (schema) {
+      const errors = validateField(input, schema);
+      for (const error of errors) {
+        const fixResult = applyFixesForPath(input, error.path, error.expected);
+        if (fixResult.fixed) {
+          input = fixResult.input;
+          result.fixes.push({ type: fixResult.fix, path: error.path });
+          result.passThrough = false;
+        }
+      }
     }
 
     result.input = input;
