@@ -4,15 +4,29 @@
   "description": "Auto-repair tool-calling quirks for DeepSeek V4 in Claude Code CLI and OpenCode — making open models beat Opus 4.7",
   "license": "MIT",
   "author": "Ahmad Awais (original insight) + toolrepair contributors",
-  "keywords": ["deepseek", "claude-code", "opencode", "tool-calling", "repair", "ai-coding"],
+  "keywords": [
+    "deepseek",
+    "claude-code",
+    "opencode",
+    "tool-calling",
+    "repair",
+    "ai-coding"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair.git"
+  },
+  "bugs": "https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/issues",
+  "homepage": "https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair#readme",
   "bin": {
-    "ahmad-awais-deepseek-v4-toolrepair": "./bin/cli.js"
+    "ahmad-awais-deepseek-v4-toolrepair": "bin/cli.js"
   },
   "main": "./src/index.js",
   "files": [
     "bin/",
     "src/",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "test": "node --test test/**/*.test.js",
