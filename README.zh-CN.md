@@ -120,7 +120,18 @@ npx ahmad-awais-deepseek-v4-toolrepair uninstall
 | 3 | `wrap-single-object` | `{ input: {} }` → `{ input: [{}] }` |
 | 4 | `wrap-bare-string` | `{ input: "foo" }` → `{ input: ["foo"] }` |
 
-附加：autolink 检测、关系不变量修复（offset/limit）。
+附加：autolink 检测（仅作用于 `path` 类型字段）、关系不变量修复（offset/limit）、安全护栏（拒绝路径穿越、控制字符、HTML）。
+
+## 质量
+
+| 指标 | 数值 |
+|---|---|
+| 测试 | 109 / 109 ✅ |
+| Benchmark 场景 | 12 / 12 — 100% 成功率 ✅ |
+| 行覆盖率 | 100% ✅ |
+| 函数覆盖率 | 100% ✅ |
+| 运行时依赖 | 0 |
+| 支持工具 | 7（`read_file`、`write_to_file`、`edit_file`、`search_content`、`execute_command`、`list_files`、`Read`） |
 
 ## 参与贡献
 

@@ -186,7 +186,18 @@ Tool call arrives
 | 3 | `wrap-single-object` | `{ input: {} }` → `{ input: [{}] }` |
 | 4 | `wrap-bare-string` | `{ input: "foo" }` → `{ input: ["foo"] }` |
 
-Plus: autolink detection, relational invariant fixing (offset/limit).
+Plus: autolink detection (scoped to `path`-typed fields), relational invariant fixing (offset/limit), security guards (rejects path traversal, control chars, HTML).
+
+## Quality
+
+| Metric | Value |
+|---|---|
+| Tests | 109 / 109 ✅ |
+| Benchmark scenarios | 12 / 12 — 100% success ✅ |
+| Line coverage | 100% ✅ |
+| Function coverage | 100% ✅ |
+| Runtime dependencies | 0 |
+| Supported tools | 7 (`read_file`, `write_to_file`, `edit_file`, `search_content`, `execute_command`, `list_files`, `Read`) |
 
 ## Contributing
 
