@@ -1,5 +1,36 @@
 # Changelog
 
+## v1.0.0 (2026-05-26, retagged)
+
+Tag `v1.0.0` re-pointed to current `main` HEAD. This is the stable, production-ready release of the validate-then-repair tool-call recovery engine based on [Ahmad Awais's research](https://x.com/MrAhmadAwais/status/2050956678502420612).
+
+### Cumulative scope (vs. original v1.0.0)
+
+Includes everything from v1.1.0 below, plus:
+
+#### Added
+
+- **Required-field validation** — `!` suffix in schema marks required fields; missing required fields reported as `received: 'missing'` errors.
+- **API contract guarantees** — `repaired=true` distinguishes full vs. partial repair via `errors.length`; `retryMessage` always populated when errors exist.
+- **`path` type in schema** — file-path fields get autolink detection + (future) traversal checks distinct from generic strings.
+- **CI benchmark + integration tests** — `node test/benchmark.js` runs 12 real-world scenarios at 100% success.
+
+#### Changed
+
+- **Architecture refactor** — `toolSchemas` extracted to `src/repair/schemas.js`; Step 1d shape-fix loop extracted to internal `runShapeFixLoop` helper. Zero behavior change, 100% backward-compatible `module.exports`.
+
+#### Quality gates
+
+- 109/109 tests pass
+- 12/12 benchmark scenarios — 100% success rate
+- 100% line + function coverage (V8 branch 97.73% — residual is sub-expression artifact)
+
+#### Docs
+
+- Inline notes for `applyFixesForPath` (global removeNulls side-effect) and `validateField` (top-level-only scope) assumptions.
+
+---
+
 ## v1.1.0 (2025-05-25)
 
 ### Breaking Changes
