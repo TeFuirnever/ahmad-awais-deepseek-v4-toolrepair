@@ -9,52 +9,7 @@
 const { applyFixesForPath, removeNulls } = require('./shape-fixes');
 const { fixAutolinksInPaths } = require('./autolink-fix');
 const { applyRelationalFixes } = require('./relational-fix');
-
-// Schema registry: maps field names to types. '!' suffix = required field.
-// 'path' = file path string (gets autolink detection + traversal check).
-const toolSchemas = {
-  read_file: {
-    file_path: 'path!',
-    offset: 'number',
-    limit: 'number',
-  },
-  write_to_file: {
-    file_path: 'path!',
-    content: 'string!',
-  },
-  edit_file: {
-    file_path: 'path!',
-    old_string: 'string!',
-    new_string: 'string!',
-    replace_all: 'boolean',
-  },
-  search_content: {
-    directory: 'path!',
-    pattern: 'string!',
-    file_types: 'string',
-    output_mode: 'string',
-  },
-  execute_command: {
-    command: 'string!',
-    args: 'array',
-    requires_approval: 'boolean',
-  },
-  list_files: {
-    target_directory: 'path!',
-    depth: 'number',
-    offset: 'number',
-    limit: 'number',
-  },
-  Read: {
-    file_path: 'path!',
-    offset: 'number',
-    limit: 'number',
-  },
-};
-
-function getSchema(toolName) {
-  return toolSchemas[toolName] || null;
-}
+const { getSchema } = require('./schemas');
 
 function tryParse(input) {
   // If input is already an object, validate with known schema
@@ -109,6 +64,24 @@ function validateField(input, schema) {
   return errors;
 }
 
+// Internal helper — validate against schema and apply per-path shape fixes.
+// Returns { input, newFixes, newErrors }. Errors are paths that had no applicable fix.
+function runShapeFixLoop(input, schema) {
+  const newFixes = [];
+  const newErrors = [];
+  const errors = validateField(input, schema);
+  for (const error of errors) {
+    const fixResult = applyFixesForPath(input, error.path, error.expected);
+    if (fixResult.fixed) {
+      input = fixResult.input;
+      newFixes.push({ type: fixResult.fix, path: error.path });
+    } else {
+      newErrors.push(error);
+    }
+  }
+  return { input, newFixes, newErrors };
+}
+
 // Returns { repaired, input, fixes, errors, passThrough, retryMessage? }.
 // repaired=true means at least one fix was applied — NOT that input is fully valid.
 // Check errors.length to distinguish full repair (errors=[]) from partial (errors.length>0).
@@ -155,18 +128,13 @@ function validateAndRepair(toolName, toolInput) {
     // Step 1d: Fix field-level type mismatches against schema
     // Handles wrap-single-object / wrap-bare-string for array-typed fields
     if (schema) {
-      const errors = validateField(input, schema);
-      for (const error of errors) {
-        const fixResult = applyFixesForPath(input, error.path, error.expected);
-        if (fixResult.fixed) {
-          input = fixResult.input;
-          result.fixes.push({ type: fixResult.fix, path: error.path });
-          result.passThrough = false;
-        } else {
-          // Fix not applicable — record error for caller
-          result.errors.push(error);
-        }
+      const { input: nextInput, newFixes, newErrors } = runShapeFixLoop(input, schema);
+      input = nextInput;
+      if (newFixes.length > 0) {
+        result.fixes.push(...newFixes);
+        result.passThrough = false;
       }
+      result.errors.push(...newErrors);
     }
 
     result.input = input;

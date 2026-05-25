@@ -369,6 +369,33 @@ describe('generateRetryMessage', () => {
   });
 });
 
+describe('refactor invariants — fixes record shape', () => {
+  it('autolink fix record contains type and fields', () => {
+    const r = validateAndRepair('write_to_file', { file_path: '[a.md](http://a.md)', content: 'x' });
+    const fix = r.fixes.find(f => f.type === 'autolink');
+    assert.ok(Array.isArray(fix.fields));
+    assert.ok(fix.fields.includes('file_path'));
+  });
+
+  it('relational fix record contains type and notes', () => {
+    const r = validateAndRepair('read_file', { file_path: '/tmp/t', offset: 10 });
+    const fix = r.fixes.find(f => f.type === 'relational');
+    assert.ok(Array.isArray(fix.notes));
+  });
+
+  it('shape-fix record contains type and path', () => {
+    const r = validateAndRepair('execute_command', { command: 'ls', args: '["-la"]' });
+    const fix = r.fixes.find(f => f.type === 'parse-json-array');
+    assert.strictEqual(fix.path, 'args');
+  });
+
+  it('remove-nulls fix record has only type', () => {
+    const r = validateAndRepair('read_file', { file_path: '/tmp/t', offset: null });
+    const fix = r.fixes.find(f => f.type === 'remove-nulls');
+    assert.ok(fix);
+  });
+});
+
 describe('validateField — direct', () => {
   it('rejects null input', () => {
     const schema = getSchema('read_file');
