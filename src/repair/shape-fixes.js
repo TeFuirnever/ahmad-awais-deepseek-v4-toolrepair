@@ -89,7 +89,10 @@ function wrapBareString(input, path) {
   return { fixed: false, input };
 }
 
-// Apply fixes in correct order for a specific issue path
+// Apply fixes in correct order for a specific issue path.
+// Note: removeNulls runs unconditionally and is object-global, not path-scoped —
+// it strips ALL null fields from input, not just `path`. Safe because null
+// optional fields are always removable, but the name suggests path-only action.
 function applyFixesForPath(input, path, expectedType) {
   // Fix 1: remove nulls (only if input is object)
   const r1 = removeNulls(input);

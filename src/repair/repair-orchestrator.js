@@ -28,6 +28,9 @@ function tryParse(input) {
   return { valid: false, input, errors: [{ path: '', expected: 'object', received: typeof input }] };
 }
 
+// Validates top-level keys only. Nested objects (e.g. { config: 'object' })
+// would pass through unchecked — current schemas have no nested types, so
+// this is an intentional simplification, not a bug. Revisit if schemas grow.
 function validateField(input, schema) {
   if (input === null || typeof input !== 'object' || Array.isArray(input)) {
     return [{ path: '', expected: 'object', received: input === null ? 'null' : typeof input }];
