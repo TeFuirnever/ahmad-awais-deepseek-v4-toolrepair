@@ -105,9 +105,6 @@ function validateField(input, schema) {
     if (expectedType === 'boolean' && typeof val !== 'boolean') {
       errors.push({ path: key, expected: 'boolean', received: typeof val });
     }
-    if (expectedType === 'object' && (typeof val !== 'object' || val === null || Array.isArray(val))) {
-      errors.push({ path: key, expected: 'object', received: typeof val });
-    }
   }
   return errors;
 }
@@ -182,57 +179,22 @@ function validateAndRepair(toolName, toolInput) {
     return result;
   }
 
-  // Step 2: Parse failed — try shape fixes
+  // Step 2: Parse failed — input is not a plain object
   result.passThrough = false;
   let input = parsed.input;
   const schema = getSchema(toolName);
+  result.errors = parsed.errors;
 
-  if (schema) {
-    const errors = validateField(input, schema);
-    if (errors.length > 0) {
-      result.errors = errors;
-
-      for (const error of errors) {
-        const fixResult = applyFixesForPath(input, error.path, error.expected);
-        if (fixResult.fixed) {
-          input = fixResult.input;
-          result.fixes.push({ type: fixResult.fix, path: error.path });
-        }
-      }
-    } else {
-      // No schema-level errors found — keep parse errors for non-object inputs
-      result.errors = parsed.errors;
-    }
-  } else {
-    result.errors = parsed.errors;
-  }
-
-  // Step 2a: Also try autolink fix
+  // Step 2a: Try autolink fix (works on arrays via walker)
   const autolinkResult = fixAutolinksInPaths(input, schema);
   if (autolinkResult.fixed) {
     input = autolinkResult.input;
     result.fixes.push({ type: 'autolink', fields: autolinkResult.fixes });
   }
 
-  // Step 2b: Try relational fix
-  const relationResult = applyRelationalFixes(toolName, input);
-  if (relationResult.repaired) {
-    input = relationResult.input;
-    result.fixes.push({ type: 'relational', notes: relationResult.notes });
-  }
-
-  // Step 3: Re-validate after fixes
+  // Non-object inputs cannot become valid through fixes — report failure
   if (result.fixes.length > 0) {
-    const recheck = tryParse(input);
-    if (recheck.valid) {
-      result.repaired = true;
-      result.input = recheck.input;
-      result.passThrough = false;
-    } else {
-      result.repaired = false;
-      result.input = toolInput; // Return original on failure
-      result.retryMessage = generateRetryMessage(toolName, result.errors, result.fixes);
-    }
+    result.retryMessage = generateRetryMessage(toolName, result.errors, result.fixes);
   }
 
   if (result.errors.length > 0 && !result.retryMessage) {
@@ -277,4 +239,4 @@ function logTelemetry(telemetry) {
   }));
 }
 
-module.exports = { validateAndRepair, generateRetryMessage, logTelemetry };
+module.exports = { validateAndRepair, generateRetryMessage, logTelemetry, validateField, getSchema };

@@ -61,4 +61,55 @@ describe('fixAutolinksInPaths', () => {
     const r = fixAutolinksInPaths(input);
     assert.strictEqual(r.fixed, false);
   });
+
+  it('returns fixed:false for null input', () => {
+    const r = fixAutolinksInPaths(null);
+    assert.strictEqual(r.fixed, false);
+  });
+
+  it('returns fixed:false for non-object input', () => {
+    const r = fixAutolinksInPaths('string');
+    assert.strictEqual(r.fixed, false);
+  });
+
+  it('walks arrays in fallback mode (no schema)', () => {
+    const input = { items: ['[a.md](http://a.md)', 'normal'] };
+    const r = fixAutolinksInPaths(input, null);
+    assert.strictEqual(r.fixed, true);
+    assert.strictEqual(input.items[0], 'a.md');
+    assert.strictEqual(input.items[1], 'normal');
+    assert.ok(r.fixes.includes('[0]'));
+  });
+
+  it('walks nested objects inside arrays (no schema)', () => {
+    const input = { items: [{ path: '[b.md](http://b.md)' }] };
+    const r = fixAutolinksInPaths(input, null);
+    assert.strictEqual(r.fixed, true);
+    assert.strictEqual(input.items[0].path, 'b.md');
+  });
+
+  it('skips non-string non-object array elements (no schema)', () => {
+    const input = { items: [123, null, '[c.md](http://c.md)'] };
+    const r = fixAutolinksInPaths(input, null);
+    assert.strictEqual(r.fixed, true);
+    assert.strictEqual(input.items[0], 123);
+    assert.strictEqual(input.items[1], null);
+    assert.strictEqual(input.items[2], 'c.md');
+  });
+
+  it('walks nested objects in fallback mode (no schema)', () => {
+    const input = { outer: { path: '[d.md](http://d.md)' } };
+    const r = fixAutolinksInPaths(input, null);
+    assert.strictEqual(r.fixed, true);
+    assert.strictEqual(input.outer.path, 'd.md');
+  });
+
+  it('only fixes path-typed fields when schema provided', () => {
+    const schema = { file_path: 'path!', content: 'string!' };
+    const input = { file_path: '[e.md](http://e.md)', content: '[f.md](http://f.md)' };
+    const r = fixAutolinksInPaths(input, schema);
+    assert.strictEqual(r.fixed, true);
+    assert.strictEqual(input.file_path, 'e.md');
+    assert.strictEqual(input.content, '[f.md](http://f.md)');
+  });
 });

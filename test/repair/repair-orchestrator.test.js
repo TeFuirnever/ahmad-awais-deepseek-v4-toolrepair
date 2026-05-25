@@ -1,6 +1,6 @@
 const { describe, it } = require('node:test');
 const assert = require('node:assert');
-const { validateAndRepair } = require('../../src/repair/repair-orchestrator');
+const { validateAndRepair, generateRetryMessage, logTelemetry, validateField, getSchema } = require('../../src/repair/repair-orchestrator');
 
 describe('validateAndRepair — valid input', () => {
   it('passes through valid input untouched', () => {
@@ -252,5 +252,153 @@ describe('validateAndRepair — API contract', () => {
     assert.ok(r.errors.length > 0);
     assert.ok(r.retryMessage);
     assert.ok(r.retryMessage.includes('read_file'));
+  });
+});
+
+describe('validateAndRepair — tryParse string input', () => {
+  it('parses valid JSON string to object', () => {
+    const r = validateAndRepair('read_file', '{"file_path":"/tmp/test","offset":0,"limit":100}');
+    assert.strictEqual(r.passThrough, true);
+    assert.strictEqual(r.input.file_path, '/tmp/test');
+  });
+
+  it('parses JSON string and applies fixes', () => {
+    const r = validateAndRepair('read_file', '{"file_path":"/tmp/test","offset":null}');
+    assert.strictEqual(r.repaired, true);
+    assert.strictEqual(r.input.offset, undefined);
+  });
+});
+
+describe('validateAndRepair — validateField type checks', () => {
+  it('detects string type mismatch', () => {
+    const r = validateAndRepair('write_to_file', {
+      file_path: '/tmp/test',
+      content: 123,
+    });
+    assert.ok(r.errors.some(e => e.path === 'content' && e.expected === 'string'));
+  });
+
+  it('detects boolean type mismatch', () => {
+    const r = validateAndRepair('execute_command', {
+      command: 'ls',
+      requires_approval: 'yes',
+    });
+    assert.ok(r.errors.some(e => e.path === 'requires_approval' && e.expected === 'boolean'));
+  });
+});
+
+describe('validateAndRepair — Step 2 paths', () => {
+  it('Step 2: known tool with non-object input hits schema validation', () => {
+    const r = validateAndRepair('read_file', 'not-json');
+    assert.strictEqual(r.passThrough, false);
+    assert.ok(r.errors.length > 0);
+    assert.strictEqual(r.errors[0].expected, 'object');
+  });
+
+  it('Step 2a: autolink fix on array input (unknown tool)', () => {
+    const r = validateAndRepair('unknown_tool', ['[a.md](http://a.md)']);
+    assert.ok(r.fixes.some(f => f.type === 'autolink'));
+  });
+
+  it('Step 2 + Step 3: re-validate failure after fix on non-object', () => {
+    const r = validateAndRepair('unknown_tool', ['[a.md](http://a.md)']);
+    assert.strictEqual(r.repaired, false);
+    assert.ok(r.retryMessage);
+  });
+
+  it('Step 2: known tool non-object with no schema-level fix', () => {
+    const r = validateAndRepair('read_file', null);
+    assert.strictEqual(r.passThrough, false);
+    assert.ok(r.errors.length > 0);
+  });
+});
+
+describe('logTelemetry', () => {
+  it('logs repaired event to stderr', () => {
+    const original = console.error;
+    let logged;
+    console.error = (msg) => { logged = msg; };
+    logTelemetry({
+      repaired: true,
+      tool: 'read_file',
+      passThrough: false,
+      fixes: [{ type: 'remove-nulls' }],
+      errors: [],
+    });
+    console.error = original;
+    const parsed = JSON.parse(logged);
+    assert.strictEqual(parsed.event, 'tool_input_repaired');
+    assert.strictEqual(parsed.tool, 'read_file');
+    assert.deepStrictEqual(parsed.fixes, ['remove-nulls']);
+  });
+
+  it('logs invalid event to stderr', () => {
+    const original = console.error;
+    let logged;
+    console.error = (msg) => { logged = msg; };
+    logTelemetry({
+      repaired: false,
+      tool: 'read_file',
+      passThrough: false,
+    });
+    console.error = original;
+    const parsed = JSON.parse(logged);
+    assert.strictEqual(parsed.event, 'tool_input_invalid');
+    assert.strictEqual(parsed.error_count, 0);
+  });
+});
+
+describe('generateRetryMessage', () => {
+  it('includes tool name, errors, and fixes', () => {
+    const msg = generateRetryMessage('read_file',
+      [{ path: 'offset', expected: 'number', received: 'string' }],
+      [{ type: 'relational', notes: ['limit defaulted to 2000'] }],
+    );
+    assert.ok(msg.includes('read_file'));
+    assert.ok(msg.includes('offset'));
+    assert.ok(msg.includes('Note: limit defaulted'));
+  });
+
+  it('handles empty fixes', () => {
+    const msg = generateRetryMessage('test',
+      [{ path: '', expected: 'object', received: 'number' }],
+      [],
+    );
+    assert.ok(msg.includes('test'));
+    assert.ok(!msg.includes('Auto-repair'));
+  });
+});
+
+describe('validateField — direct', () => {
+  it('rejects null input', () => {
+    const schema = getSchema('read_file');
+    const errors = validateField(null, schema);
+    assert.strictEqual(errors.length, 1);
+    assert.strictEqual(errors[0].expected, 'object');
+    assert.strictEqual(errors[0].received, 'null');
+  });
+
+  it('rejects array input', () => {
+    const schema = getSchema('read_file');
+    const errors = validateField(['bad'], schema);
+    assert.strictEqual(errors[0].expected, 'object');
+  });
+
+  it('rejects number input', () => {
+    const schema = getSchema('read_file');
+    const errors = validateField(42, schema);
+    assert.strictEqual(errors[0].received, 'number');
+  });
+
+  it('returns empty errors for valid object', () => {
+    const schema = getSchema('read_file');
+    const errors = validateField({ file_path: '/tmp/t', offset: 0, limit: 100 }, schema);
+    assert.strictEqual(errors.length, 0);
+  });
+
+  it('detects number type mismatch', () => {
+    const schema = getSchema('read_file');
+    const errors = validateField({ file_path: '/tmp/t', offset: 'bad' }, schema);
+    assert.ok(errors.some(e => e.path === 'offset' && e.expected === 'number'));
   });
 });

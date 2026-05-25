@@ -52,6 +52,12 @@ describe('parseJsonArray', () => {
     assert.strictEqual(r.fixed, false);
   });
 
+  it('returns fixed:false for invalid JSON that looks like array', () => {
+    const input = { cmd: '[not,valid,json]' };
+    const r = parseJsonArray(input, 'cmd');
+    assert.strictEqual(r.fixed, false);
+  });
+
   it('handles null path traversal gracefully', () => {
     const input = { a: null };
     const r = parseJsonArray(input, 'a.b');
@@ -73,6 +79,12 @@ describe('wrapSingleObject', () => {
     const r = wrapSingleObject(input, 'input');
     assert.strictEqual(r.fixed, false);
   });
+
+  it('handles null intermediate in nested path', () => {
+    const input = { a: null };
+    const r = wrapSingleObject(input, 'a.b');
+    assert.strictEqual(r.fixed, false);
+  });
 });
 
 describe('wrapBareString', () => {
@@ -87,6 +99,12 @@ describe('wrapBareString', () => {
   it('skips non-strings', () => {
     const input = { file: 123 };
     const r = wrapBareString(input, 'file');
+    assert.strictEqual(r.fixed, false);
+  });
+
+  it('handles null intermediate in nested path', () => {
+    const input = { a: null };
+    const r = wrapBareString(input, 'a.b');
     assert.strictEqual(r.fixed, false);
   });
 });
