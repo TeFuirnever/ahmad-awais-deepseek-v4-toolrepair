@@ -26,8 +26,9 @@ function fixAutolinksInPaths(input, schema) {
   const fixes = [];
 
   if (schema) {
-    for (const [key, type] of Object.entries(schema)) {
-      if (type === 'path' && typeof input[key] === 'string') {
+    for (const [key, rawType] of Object.entries(schema)) {
+      const baseType = rawType.endsWith('!') ? rawType.slice(0, -1) : rawType;
+      if (baseType === 'path' && typeof input[key] === 'string') {
         const result = fixMarkdownAutolink(input[key]);
         if (result.fixed) {
           input[key] = result.value;

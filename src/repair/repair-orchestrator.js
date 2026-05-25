@@ -10,44 +10,43 @@ const { applyFixesForPath, removeNulls } = require('./shape-fixes');
 const { fixAutolinksInPaths } = require('./autolink-fix');
 const { applyRelationalFixes } = require('./relational-fix');
 
-// Simple schema registry for known tool fields
-// Maps field paths to expected types: 'string', 'array', 'object', 'path', etc.
-// 'path' = string that represents a file path — gets autolink detection + traversal check
+// Schema registry: maps field names to types. '!' suffix = required field.
+// 'path' = file path string (gets autolink detection + traversal check).
 const toolSchemas = {
   read_file: {
-    file_path: 'path',
+    file_path: 'path!',
     offset: 'number',
     limit: 'number',
   },
   write_to_file: {
-    file_path: 'path',
-    content: 'string',
+    file_path: 'path!',
+    content: 'string!',
   },
   edit_file: {
-    file_path: 'path',
-    old_string: 'string',
-    new_string: 'string',
+    file_path: 'path!',
+    old_string: 'string!',
+    new_string: 'string!',
     replace_all: 'boolean',
   },
   search_content: {
-    directory: 'path',
-    pattern: 'string',
+    directory: 'path!',
+    pattern: 'string!',
     file_types: 'string',
     output_mode: 'string',
   },
   execute_command: {
-    command: 'string',
+    command: 'string!',
     args: 'array',
     requires_approval: 'boolean',
   },
   list_files: {
-    target_directory: 'path',
+    target_directory: 'path!',
     depth: 'number',
     offset: 'number',
     limit: 'number',
   },
   Read: {
-    file_path: 'path',
+    file_path: 'path!',
     offset: 'number',
     limit: 'number',
   },
@@ -79,9 +78,17 @@ function validateField(input, schema) {
     return [{ path: '', expected: 'object', received: input === null ? 'null' : typeof input }];
   }
   const errors = [];
-  for (const [key, expectedType] of Object.entries(schema)) {
+  for (const [key, rawType] of Object.entries(schema)) {
+    const required = rawType.endsWith('!');
+    const expectedType = required ? rawType.slice(0, -1) : rawType;
     const val = input[key];
-    if (val === undefined || val === null) continue;
+
+    if (val === undefined || val === null) {
+      if (required) {
+        errors.push({ path: key, expected: expectedType, received: 'missing' });
+      }
+      continue;
+    }
 
     if (expectedType === 'array' && !Array.isArray(val)) {
       errors.push({ path: key, expected: 'array', received: typeof val });
@@ -105,6 +112,10 @@ function validateField(input, schema) {
   return errors;
 }
 
+// Returns { repaired, input, fixes, errors, passThrough, retryMessage? }.
+// repaired=true means at least one fix was applied — NOT that input is fully valid.
+// Check errors.length to distinguish full repair (errors=[]) from partial (errors.length>0).
+// When errors.length>0, retryMessage is always populated for model feedback.
 function validateAndRepair(toolName, toolInput) {
   const result = {
     repaired: false,
@@ -136,7 +147,7 @@ function validateAndRepair(toolName, toolInput) {
       result.passThrough = false;
     }
 
-    // Step 1d: Fix relational invariants
+    // Step 1c: Fix relational invariants
     const relationResult = applyRelationalFixes(toolName, input);
     if (relationResult.repaired) {
       input = relationResult.input;
@@ -144,7 +155,7 @@ function validateAndRepair(toolName, toolInput) {
       result.passThrough = false;
     }
 
-    // Step 1e: Fix field-level type mismatches against schema
+    // Step 1d: Fix field-level type mismatches against schema
     // Handles wrap-single-object / wrap-bare-string for array-typed fields
     if (schema) {
       const errors = validateField(input, schema);
@@ -222,6 +233,10 @@ function validateAndRepair(toolName, toolInput) {
       result.input = toolInput; // Return original on failure
       result.retryMessage = generateRetryMessage(toolName, result.errors, result.fixes);
     }
+  }
+
+  if (result.errors.length > 0 && !result.retryMessage) {
+    result.retryMessage = generateRetryMessage(toolName, result.errors, result.fixes);
   }
 
   return result;

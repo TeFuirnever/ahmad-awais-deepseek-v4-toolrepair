@@ -183,3 +183,74 @@ describe('validateAndRepair — list_files relational', () => {
     assert.strictEqual(r.repaired, true);
   });
 });
+
+describe('validateAndRepair — required field validation', () => {
+  it('reports error when required file_path is missing', () => {
+    const r = validateAndRepair('read_file', {});
+    assert.ok(r.errors.length > 0);
+    assert.strictEqual(r.errors[0].path, 'file_path');
+    assert.strictEqual(r.errors[0].received, 'missing');
+  });
+
+  it('reports error when required file_path is null (before removeNulls)', () => {
+    const r = validateAndRepair('read_file', { file_path: null });
+    assert.ok(r.errors.some(e => e.path === 'file_path'));
+  });
+
+  it('no error for present required field', () => {
+    const r = validateAndRepair('read_file', { file_path: '/tmp/test' });
+    assert.strictEqual(r.errors.length, 0);
+    assert.strictEqual(r.passThrough, true);
+  });
+
+  it('no error for missing optional fields', () => {
+    const r = validateAndRepair('read_file', { file_path: '/tmp/test' });
+    assert.strictEqual(r.errors.length, 0);
+  });
+
+  it('reports multiple missing required fields', () => {
+    const r = validateAndRepair('write_to_file', {});
+    assert.ok(r.errors.length >= 2);
+    const paths = r.errors.map(e => e.path);
+    assert.ok(paths.includes('file_path'));
+    assert.ok(paths.includes('content'));
+  });
+});
+
+describe('validateAndRepair — API contract', () => {
+  it('partial repair: repaired=true with errors when some fixes applied but issues remain', () => {
+    const r = validateAndRepair('read_file', {
+      file_path: '[test.md](http://test.md)',
+      offset: 'bad',
+    });
+    assert.strictEqual(r.repaired, true);
+    assert.ok(r.fixes.length > 0);
+    assert.ok(r.errors.length > 0);
+    assert.ok(r.retryMessage);
+  });
+
+  it('full repair: repaired=true with zero errors', () => {
+    const r = validateAndRepair('read_file', {
+      file_path: '/tmp/test',
+      offset: null,
+      limit: null,
+    });
+    assert.strictEqual(r.repaired, true);
+    assert.strictEqual(r.errors.length, 0);
+    assert.strictEqual(r.retryMessage, undefined);
+  });
+
+  it('retryMessage always populated when errors present', () => {
+    const r = validateAndRepair('read_file', { offset: 'bad' });
+    assert.ok(r.errors.length > 0);
+    assert.ok(r.retryMessage);
+    assert.ok(r.retryMessage.includes('read_file'));
+  });
+
+  it('retryMessage populated for non-object input (step-2 no-fix path)', () => {
+    const r = validateAndRepair('read_file', 42);
+    assert.ok(r.errors.length > 0);
+    assert.ok(r.retryMessage);
+    assert.ok(r.retryMessage.includes('read_file'));
+  });
+});
