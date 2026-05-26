@@ -159,6 +159,20 @@ npm link
 toolrepair install
 ```
 
+### 单平台 / 部分安装
+
+通过上面三种方式装好 CLI 后，可以单独指定平台或只装某一层：
+
+```bash
+toolrepair install --platform claude-code   # 只装 Claude Code
+toolrepair install --platform opencode      # 只装 OpenCode
+toolrepair install --rules-only             # 只装 CLAUDE.md / AGENTS.md 规则
+toolrepair install --plugin-only            # 只装 hook / plugin（不装规则）
+toolrepair install --force                  # 强制重装（先卸载再安装）
+```
+
+`install.sh` 默认自动检测双平台。一开始就要单装，请用方式二（`npx --package=github:... toolrepair install --platform <p>`）。
+
 > **LLM 优先：** 复制这段话给你的 AI agent："从 GitHub 安装 ahmad-awais-deepseek-v4-toolrepair：`curl -fsSL https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.sh | sh`。"
 
 ## 验证

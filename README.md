@@ -189,6 +189,20 @@ npm link
 toolrepair install
 ```
 
+### Single-platform / partial install
+
+After installing the CLI via any of the 3 options above, you can target one platform or only one layer:
+
+```bash
+toolrepair install --platform claude-code   # only Claude Code
+toolrepair install --platform opencode      # only OpenCode
+toolrepair install --rules-only             # only CLAUDE.md / AGENTS.md rules
+toolrepair install --plugin-only            # only hook / plugin (no rules)
+toolrepair install --force                  # clean reinstall (uninstall then install)
+```
+
+`install.sh` defaults to auto-detecting both platforms. To pick one from the start, use Option 2 (`npx --package=github:... toolrepair install --platform <p>`).
+
 > **LLM-first:** Copy this prompt to your AI agent: _"Install ahmad-awais-deepseek-v4-toolrepair from GitHub: `curl -fsSL https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.sh | sh`."_
 
 ## Verify
