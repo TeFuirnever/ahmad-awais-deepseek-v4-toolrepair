@@ -79,8 +79,29 @@ jobs:
           export TOOLREPAIR_HOME="$HOME/.toolrepair"
           export TOOLREPAIR_BIN_DIR="$HOME/.local/bin"
           export PATH="$TOOLREPAIR_BIN_DIR:$PATH"
+          cd "$HOME"
           sh "$GITHUB_WORKSPACE/install.sh"
           toolrepair verify
           toolrepair uninstall
           test ! -f "$HOME/.claude/hooks/tool-repair-detector.js" || (echo "uninstall leaked hook"; exit 1)
           echo "install -> verify -> uninstall: clean"
+      - name: Single-platform / partial install flags (isolated HOME)
+        run: |
+          set -e
+          export HOME="$(mktemp -d)"
+          export PATH="$HOME/.local/bin:$PATH"
+          cd "$HOME"
+          # Each flag combo runs in a fresh subdir of HOME to avoid cross-contamination.
+          NODE="$(command -v node)"
+          CLI="$GITHUB_WORKSPACE/bin/cli.js"
+          # --platform claude-code --rules-only
+          HOME_A="$(mktemp -d)" && HOME="$HOME_A" "$NODE" "$CLI" install --platform claude-code --rules-only
+          test -f "$HOME_A/.claude/CLAUDE.md" || (echo "claude-code --rules-only missed CLAUDE.md"; exit 1)
+          # --platform opencode --plugin-only
+          HOME_B="$(mktemp -d)" && HOME="$HOME_B" "$NODE" "$CLI" install --platform opencode --plugin-only
+          test -f "$HOME_B/.config/opencode/opencode.json" || (echo "opencode --plugin-only missed opencode.json"; exit 1)
+          # --force reinstall (uninstall+install composition)
+          HOME_C="$(mktemp -d)" && HOME="$HOME_C" "$NODE" "$CLI" install --platform claude-code --rules-only
+          HOME="$HOME_C" "$NODE" "$CLI" install --force --platform claude-code --rules-only
+          test -f "$HOME_C/.claude/CLAUDE.md" || (echo "--force reinstall lost CLAUDE.md"; exit 1)
+          echo "single-platform / partial / --force flags: OK"

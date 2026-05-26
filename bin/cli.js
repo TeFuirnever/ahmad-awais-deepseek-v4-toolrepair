@@ -97,7 +97,7 @@ switch (command) {
         await uninstall({
           platform: flags.platform,
           project: flags.project,
-          skipBackup: true,
+          skipBackup: flags['skip-backup'],
           dryRun: flags['dry-run'],
         }).catch(() => {});
       }

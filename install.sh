@@ -23,7 +23,7 @@ say() { printf "toolrepair: %s\n" "$1"; }
 fail() { printf "toolrepair: error: %s\n" "$1" >&2; exit 1; }
 
 # 1. node check
-command -v node >/dev/null 2>&1 || fail "node not found. Install Node.js >=18 first (https://nodejs.org)."
+command -v node >/dev/null 2>&1 || fail "node not found. Install Node.js >=18 first (https://nodejs.org). If using nvm, run 'source ~/.nvm/nvm.sh' first."
 NODE_MAJOR=$(node -e 'process.stdout.write(String(process.versions.node.split(".")[0]))')
 if [ "$NODE_MAJOR" -lt 18 ]; then
   fail "node >=18 required, found v$NODE_MAJOR. Upgrade Node.js."
@@ -47,9 +47,11 @@ chmod +x "$INSTALL_DIR/bin/cli.js"
 say "linked $BIN_DIR/$LINK_NAME -> $INSTALL_DIR/bin/cli.js"
 
 # PATH hint
+PATH_NEEDS_FIX=0
 case ":$PATH:" in
   *":$BIN_DIR:"*) ;;
-  *) say "WARN: $BIN_DIR is not on PATH — add it to your shell profile:";
+  *) PATH_NEEDS_FIX=1
+     say "WARN: $BIN_DIR is not on PATH — add it to your shell profile:";
      printf '  export PATH="%s:$PATH"\n' "$BIN_DIR" ;;
 esac
 
@@ -57,4 +59,8 @@ esac
 say "running 'toolrepair install' (auto-detect platform)"
 "$INSTALL_DIR/bin/cli.js" install || fail "install command failed — re-run manually after fixing PATH."
 
-say "done. Run 'toolrepair verify' to confirm."
+if [ "$PATH_NEEDS_FIX" = "1" ]; then
+  say "install complete, but '$LINK_NAME' is not yet on PATH — add $BIN_DIR to PATH then run 'toolrepair verify'."
+else
+  say "done. Run 'toolrepair verify' to confirm."
+fi
