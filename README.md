@@ -68,9 +68,11 @@ Based on [Ahmad Awais](https://x.com/MrAhmadAwais)'s research: a tool-input repa
 
 </details>
 
-### Before / After (shadow benchmark)
+### Before / After
 
-Recorded-corpus benchmark over 33 real failure patterns from DeepSeek V4 / Qwen / GLM tool calls. Oracle = schema validation. Live-API replay is deferred to v1.1.0; methodology and raw counts are committed in [`bench-results.json`](bench-results.json).
+Two benchmarks, same methodology (schema-validation oracle). Raw counts committed as JSON artifacts.
+
+#### Recorded corpus (33 patterns from DeepSeek V4 / Qwen / GLM)
 
 | Pass | Accepted | Rate |
 |---|---|---|
@@ -78,7 +80,19 @@ Recorded-corpus benchmark over 33 real failure patterns from DeepSeek V4 / Qwen 
 | Repaired (this lib)  | 32 / 33 | **97.0%** |
 | **Uplift** | +25 | **+75.8 pts** |
 
-Reproduce: `node scripts/shadow-bench.js`. A `scripts/shadow-bench-live.js` harness also exists for replaying BFCL/ToolBench corpora when contributors provide a source file (see CONTRIBUTING.md).
+Reproduce: `node scripts/shadow-bench.js`.
+
+#### Live API (11 tool calls against `deepseek-v4-pro`, 2026-05-26)
+
+| Pass | Accepted | Rate |
+|---|---|---|
+| Baseline (no repair) | 9 / 11 | **81.8%** |
+| Repaired (this lib)  | 11 / 11 | **100.0%** |
+| **Uplift** | +2 | **+18.2 pts** |
+
+Reproduce: `node scripts/live-bench.js` (requires `ANTHROPIC_AUTH_TOKEN` + `ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic`).
+
+> DeepSeek V4 Pro improved dramatically (21.2% → 81.8%), but still produces format errors in ~18% of tool calls — `relational` (offset without limit), `null-in-optional` (encoding:null), and `json-string-array` (stringified todos). Repair catches all remaining failures.
 
 ## How is this different from `json-repair` / `zod-validation-error` / `partial-json`?
 

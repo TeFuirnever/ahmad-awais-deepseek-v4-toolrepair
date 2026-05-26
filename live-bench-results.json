@@ -1,0 +1,233 @@
+{
+  "methodology": {
+    "oracle": "schema-validation: accepted iff passThrough OR (repaired AND errors.length===0)",
+    "baseline": "unrepaired: raw DeepSeek output fed to oracle with no repair",
+    "repaired": "full pipeline: validateAndRepair applied to raw DeepSeek output",
+    "model": "deepseek-v4-pro",
+    "api_url": "https://api.deepseek.com/anthropic"
+  },
+  "startedAt": "2026-05-26T14:15:05.590Z",
+  "finishedAt": "2026-05-26T14:15:33.941Z",
+  "totals": {
+    "scenarios": 11,
+    "total_tool_calls": 11,
+    "baseline_accepted": 9,
+    "baseline_rate": 0.818,
+    "repaired_accepted": 11,
+    "repaired_rate": 1,
+    "uplift_points": 0.182
+  },
+  "by_pattern": {
+    "null-in-optional": {
+      "total": 3,
+      "baseline_accepted": 2,
+      "repaired_accepted": 3,
+      "baseline_rate": 0.667,
+      "repaired_rate": 1
+    },
+    "json-string-array": {
+      "total": 2,
+      "baseline_accepted": 2,
+      "repaired_accepted": 2,
+      "baseline_rate": 1,
+      "repaired_rate": 1
+    },
+    "wrap-object": {
+      "total": 1,
+      "baseline_accepted": 1,
+      "repaired_accepted": 1,
+      "baseline_rate": 1,
+      "repaired_rate": 1
+    },
+    "bare-string": {
+      "total": 1,
+      "baseline_accepted": 1,
+      "repaired_accepted": 1,
+      "baseline_rate": 1,
+      "repaired_rate": 1
+    },
+    "autolink-path": {
+      "total": 1,
+      "baseline_accepted": 1,
+      "repaired_accepted": 1,
+      "baseline_rate": 1,
+      "repaired_rate": 1
+    },
+    "relational": {
+      "total": 1,
+      "baseline_accepted": 0,
+      "repaired_accepted": 1,
+      "baseline_rate": 0,
+      "repaired_rate": 1
+    },
+    "valid-passthrough": {
+      "total": 2,
+      "baseline_accepted": 2,
+      "repaired_accepted": 2,
+      "baseline_rate": 1,
+      "repaired_rate": 1
+    }
+  },
+  "raw_results": [
+    {
+      "scenario": "null-optional-read",
+      "pattern": "null-in-optional",
+      "tool": "Read",
+      "input": {
+        "file_path": "/tmp/bench.ts"
+      },
+      "baseline": true,
+      "repaired": true,
+      "mode": "passthrough",
+      "errors": [],
+      "stop_reason": "tool_use"
+    },
+    {
+      "scenario": "null-optional-bash",
+      "pattern": "null-in-optional",
+      "tool": "Bash",
+      "input": {
+        "command": "ls -la"
+      },
+      "baseline": true,
+      "repaired": true,
+      "mode": "passthrough",
+      "errors": [],
+      "stop_reason": "tool_use"
+    },
+    {
+      "scenario": "json-string-array",
+      "pattern": "json-string-array",
+      "tool": "Bash",
+      "input": {
+        "command": "grep -r foo src/ --include=\"*.ts\" --exclude=\"*.test.ts\""
+      },
+      "baseline": true,
+      "repaired": true,
+      "mode": "passthrough",
+      "errors": [],
+      "stop_reason": "tool_use"
+    },
+    {
+      "scenario": "wrap-object",
+      "pattern": "wrap-object",
+      "tool": "Bash",
+      "input": {
+        "command": "echo",
+        "args": [
+          "hello"
+        ]
+      },
+      "baseline": true,
+      "repaired": true,
+      "mode": "passthrough",
+      "errors": [],
+      "stop_reason": "tool_use"
+    },
+    {
+      "scenario": "bare-string-args",
+      "pattern": "bare-string",
+      "tool": "Bash",
+      "input": {
+        "command": "ls src/"
+      },
+      "baseline": true,
+      "repaired": true,
+      "mode": "passthrough",
+      "errors": [],
+      "stop_reason": "tool_use"
+    },
+    {
+      "scenario": "autolink-read",
+      "pattern": "autolink-path",
+      "tool": "Read",
+      "input": {
+        "file_path": "notes.md"
+      },
+      "baseline": true,
+      "repaired": true,
+      "mode": "passthrough",
+      "errors": [],
+      "stop_reason": "tool_use"
+    },
+    {
+      "scenario": "relational-offset",
+      "pattern": "relational",
+      "tool": "Read",
+      "input": {
+        "file_path": "/tmp/bench.ts",
+        "offset": 100
+      },
+      "baseline": false,
+      "repaired": true,
+      "mode": "repaired",
+      "errors": [],
+      "stop_reason": "tool_use"
+    },
+    {
+      "scenario": "todowrite-json-array",
+      "pattern": "json-string-array",
+      "tool": "TodoWrite",
+      "input": {
+        "todos": [
+          {
+            "content": "fix bug",
+            "status": "pending",
+            "activeForm": "fix bug"
+          },
+          {
+            "content": "add test",
+            "status": "pending",
+            "activeForm": "add test"
+          }
+        ]
+      },
+      "baseline": true,
+      "repaired": true,
+      "mode": "passthrough",
+      "errors": [],
+      "stop_reason": "tool_use"
+    },
+    {
+      "scenario": "write-null-encoding",
+      "pattern": "null-in-optional",
+      "tool": "write_to_file",
+      "input": {
+        "file_path": "/tmp/bench.txt",
+        "content": "hello world",
+        "encoding": null
+      },
+      "baseline": false,
+      "repaired": true,
+      "mode": "repaired",
+      "errors": [],
+      "stop_reason": "tool_use"
+    },
+    {
+      "scenario": "grep-clean",
+      "pattern": "valid-passthrough",
+      "tool": "Grep",
+      "input": {
+        "pattern": "TODO"
+      },
+      "baseline": true,
+      "repaired": true,
+      "mode": "passthrough",
+      "errors": [],
+      "stop_reason": "tool_use"
+    },
+    {
+      "scenario": "valid-control",
+      "pattern": "valid-passthrough",
+      "tool": "Read",
+      "input": {
+        "file_path": "/tmp/ok.txt"
+      },
+      "baseline": true,
+      "repaired": true,
+      "mode": "passthrough",
+      "errors": [],
+      "stop_reason": "tool_use"
+    }
+  ]
+}
