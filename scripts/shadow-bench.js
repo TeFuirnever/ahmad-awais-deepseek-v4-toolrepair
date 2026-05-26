@@ -60,6 +60,39 @@ const CORPUS = [
   { tag: 'generic', pattern: 'valid-passthrough', tool: 'WebFetch', input: { url: 'https://example.com', prompt: 'summarize' } },
 ];
 
+// Negative-control corpus. These inputs SHOULD be rejected by repair.
+// If any is accepted, the repair engine is over-eager (silent contract break).
+// Categories: missing-required, type-mismatch-unfixable, security-violation,
+// non-array-json-string, real-markdown-link-not-autolink.
+const NEGATIVE_CORPUS = [
+  // missing-required: schema says required, input omits it
+  { category: 'missing-required', tool: 'read_file', input: {} },
+  { category: 'missing-required', tool: 'write_to_file', input: { file_path: '/tmp/a' } },
+  { category: 'missing-required', tool: 'edit_file', input: { file_path: '/tmp/a', old_string: 'a' } },
+  { category: 'missing-required', tool: 'WebFetch', input: { url: 'https://example.com' } },
+  { category: 'missing-required', tool: 'TodoWrite', input: {} },
+
+  // type-mismatch-unfixable: wrong type with no repair path
+  { category: 'type-mismatch-unfixable', tool: 'read_file', input: { file_path: 12345 } },
+  { category: 'type-mismatch-unfixable', tool: 'Bash', input: { command: { not: 'a string' } } },
+  { category: 'type-mismatch-unfixable', tool: 'read_file', input: { file_path: '/tmp/a', offset: 'not-a-number' } },
+
+  // security-violation: autolink with traversal / control / HTML — must be rejected, not fixed
+  { category: 'security-violation', tool: 'read_file', input: { file_path: '[../etc/passwd](http://../etc/passwd)' } },
+  { category: 'security-violation', tool: 'read_file', input: { file_path: '[<script>](http://<script>)' } },
+  { category: 'security-violation', tool: 'write_to_file', input: { file_path: '[a\x00b](http://a\x00b)', content: 'x' } },
+
+  // non-array-json-string: NOTE — wrap-bare-string intentionally wraps any non-array
+  // string into a 1-element array (documented behavior). These inputs are accepted
+  // *by design* (the call succeeds with args:["[ls, -la]"]). Not part of the
+  // negative-control set. See README "Common false-negative" note for the
+  // recommended model-prompting workaround.
+
+  // real-markdown-link-not-autolink: text != URL → must NOT be autolinked
+  { category: 'real-markdown-link-not-autolink', tool: 'read_file', input: { file_path: '[click here](http://example.com)' } },
+  { category: 'real-markdown-link-not-autolink', tool: 'read_file', input: { file_path: '[notes](https://different.com)' } },
+];
+
 // Oracle: input is "accepted" if it would pass through OR be fully repaired.
 // This mirrors what a downstream tool runtime would see.
 function isAccepted(toolName, rawInput) {
@@ -100,12 +133,34 @@ function run() {
   const total = CORPUS.length;
   const finishedAt = new Date().toISOString();
 
+  // Negative-control pass: each entry MUST be rejected. Acceptance = bug.
+  const byCategory = new Map();
+  let correctlyRejected = 0;
+  let falseAccepts = 0;
+  const falseAcceptDetails = [];
+
+  for (const entry of NEGATIVE_CORPUS) {
+    const result = isAccepted(entry.tool, deepClone(entry.input));
+    const cur = byCategory.get(entry.category) || { total: 0, rejected: 0, false_accepts: 0 };
+    cur.total += 1;
+    if (result.accepted) {
+      cur.false_accepts += 1;
+      falseAccepts += 1;
+      falseAcceptDetails.push({ category: entry.category, tool: entry.tool, input: entry.input, mode: result.mode });
+    } else {
+      cur.rejected += 1;
+      correctlyRejected += 1;
+    }
+    byCategory.set(entry.category, cur);
+  }
+
   const report = {
     methodology: {
       oracle: 'schema-validation: accepted iff passThrough OR (repaired AND errors.length===0)',
       baseline: 'unrepaired: accepted iff passThrough AND fixes.length===0 AND errors.length===0',
       repaired: 'full pipeline: validateAndRepair output is accepted by the oracle',
       corpus: 'recorded patterns from real DeepSeek V4 / Qwen / GLM tool-call failures',
+      negative_control: 'inputs that SHOULD be rejected — any acceptance signals over-eager repair',
       live_api_status: 'deferred to v1.1.0 — see ROADMAP',
     },
     startedAt,
@@ -117,9 +172,15 @@ function run() {
       repaired_accepted: repairedAccept,
       repaired_rate: round(repairedAccept / total),
       uplift_points: round((repairedAccept - baselineAccept) / total),
+      negative_corpus_size: NEGATIVE_CORPUS.length,
+      negative_correctly_rejected: correctlyRejected,
+      negative_false_accepts: falseAccepts,
+      negative_rejection_rate: round(correctlyRejected / NEGATIVE_CORPUS.length),
     },
     by_pattern: toObject(byPattern),
     by_tag: toObject(byTag),
+    by_negative_category: toNegObject(byCategory),
+    false_accepts: falseAcceptDetails,
   };
 
   const outPath = path.resolve(__dirname, '..', 'bench-results.json');
@@ -130,7 +191,19 @@ function run() {
   console.log(`Baseline accepted: ${baselineAccept} (${pct(baselineAccept, total)})`);
   console.log(`Repaired accepted: ${repairedAccept} (${pct(repairedAccept, total)})`);
   console.log(`Uplift:            +${repairedAccept - baselineAccept} (+${pct(repairedAccept - baselineAccept, total)})`);
+  console.log('\n=== Negative-Control Pass ===');
+  console.log(`Negative corpus:   ${NEGATIVE_CORPUS.length}`);
+  console.log(`Correctly rejected:${correctlyRejected} (${pct(correctlyRejected, NEGATIVE_CORPUS.length)})`);
+  console.log(`False accepts:     ${falseAccepts}`);
+  if (falseAccepts > 0) {
+    console.log('\nFALSE ACCEPTS (over-eager repair):');
+    for (const fa of falseAcceptDetails) {
+      console.log(`  [${fa.category}] ${fa.tool}: ${JSON.stringify(fa.input)} → ${fa.mode}`);
+    }
+  }
   console.log(`\nArtifact: ${outPath}`);
+
+  if (falseAccepts > 0) process.exit(1);
 }
 
 function bump(map, key, baseline, repaired) {
@@ -149,6 +222,14 @@ function toObject(map) {
       baseline_rate: round(v.baseline_accepted / v.total),
       repaired_rate: round(v.repaired_accepted / v.total),
     };
+  }
+  return out;
+}
+
+function toNegObject(map) {
+  const out = {};
+  for (const [k, v] of map) {
+    out[k] = { ...v, rejection_rate: round(v.rejected / v.total) };
   }
   return out;
 }

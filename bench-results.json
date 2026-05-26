@@ -4,17 +4,22 @@
     "baseline": "unrepaired: accepted iff passThrough AND fixes.length===0 AND errors.length===0",
     "repaired": "full pipeline: validateAndRepair output is accepted by the oracle",
     "corpus": "recorded patterns from real DeepSeek V4 / Qwen / GLM tool-call failures",
+    "negative_control": "inputs that SHOULD be rejected — any acceptance signals over-eager repair",
     "live_api_status": "deferred to v1.1.0 — see ROADMAP"
   },
-  "startedAt": "2026-05-26T00:30:40.835Z",
-  "finishedAt": "2026-05-26T00:30:40.836Z",
+  "startedAt": "2026-05-26T02:21:15.798Z",
+  "finishedAt": "2026-05-26T02:21:15.799Z",
   "totals": {
     "corpus_size": 33,
     "baseline_accepted": 7,
     "baseline_rate": 0.212,
     "repaired_accepted": 32,
     "repaired_rate": 0.97,
-    "uplift_points": 0.758
+    "uplift_points": 0.758,
+    "negative_corpus_size": 13,
+    "negative_correctly_rejected": 13,
+    "negative_false_accepts": 0,
+    "negative_rejection_rate": 1
   },
   "by_pattern": {
     "null-in-optional": {
@@ -103,5 +108,32 @@
       "baseline_rate": 1,
       "repaired_rate": 1
     }
-  }
+  },
+  "by_negative_category": {
+    "missing-required": {
+      "total": 5,
+      "rejected": 5,
+      "false_accepts": 0,
+      "rejection_rate": 1
+    },
+    "type-mismatch-unfixable": {
+      "total": 3,
+      "rejected": 3,
+      "false_accepts": 0,
+      "rejection_rate": 1
+    },
+    "security-violation": {
+      "total": 3,
+      "rejected": 3,
+      "false_accepts": 0,
+      "rejection_rate": 1
+    },
+    "real-markdown-link-not-autolink": {
+      "total": 2,
+      "rejected": 2,
+      "false_accepts": 0,
+      "rejection_rate": 1
+    }
+  },
+  "false_accepts": []
 }

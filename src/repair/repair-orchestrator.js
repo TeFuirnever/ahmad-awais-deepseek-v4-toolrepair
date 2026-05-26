@@ -57,6 +57,14 @@ function validateField(input, schema) {
     if (expectedType === 'path' && typeof val !== 'string') {
       errors.push({ path: key, expected: 'path', received: typeof val });
     }
+    if (expectedType === 'path' && typeof val === 'string') {
+      // Security: reject control chars, HTML brackets, parent-dir traversal,
+      // or stray markdown-link syntax left over after autolink-fix.
+      // These are unfixable from the validator's perspective — refuse rather than pass through.
+      if (/[\x00-\x1f<>]/.test(val) || val.includes('..') || /^\[.+\]\(.+\)$/.test(val)) {
+        errors.push({ path: key, expected: 'path', received: 'unsafe-path' });
+      }
+    }
     if (expectedType === 'number' && typeof val !== 'number') {
       errors.push({ path: key, expected: 'number', received: typeof val });
     }
@@ -137,7 +145,12 @@ function validateAndRepair(toolName, toolInput) {
         result.fixes.push(...newFixes);
         result.passThrough = false;
       }
-      result.errors.push(...newErrors);
+      if (newErrors.length > 0) {
+        // Unfixable schema violations (missing required, unrepairable type mismatch,
+        // unsafe path) are NOT pass-through — the call must be rejected upstream.
+        result.passThrough = false;
+        result.errors.push(...newErrors);
+      }
     }
 
     result.input = input;

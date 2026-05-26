@@ -2,7 +2,12 @@
 
 ## Unreleased
 
-Post-v1.0.0 infrastructure pass. No repair behavior changes — additive only.
+Post-v1.0.0 infrastructure pass. **Contains validator-tightening bug fixes** that narrow accepted-input surface — see Fixed section. Per semver policy this would normally trigger a major bump, but the prior behavior was a documented-as-impossible silent acceptance of invalid input (treated as a bug, not contract). Bump target: minor (1.1.0) with prominent CHANGELOG note.
+
+### Fixed
+
+- **Step 1d passThrough leak** — when the schema validator produced unfixable errors (missing required, type mismatch), `passThrough` stayed `true` and the malformed call would be silently accepted downstream. Now any unfixable schema violation flips `passThrough=false` and surfaces in `errors[]`. Discovered by the new negative-control corpus.
+- **Unsafe-path acceptance** — `path`-typed string fields containing control chars (`\x00–\x1f`), HTML brackets (`< >`), parent-dir traversal (`..`), or stray markdown-link syntax (`[text](url)` after autolink-fix declined to rewrite) used to pass through. Now rejected at validation time with `received: 'unsafe-path'`.
 
 ### Added
 

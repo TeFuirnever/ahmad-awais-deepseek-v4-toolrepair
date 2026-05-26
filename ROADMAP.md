@@ -59,7 +59,7 @@ Schema and reach expansion — driven by real-traffic shadow validation.
 
 - [ ] Real DeepSeek V4 / Qwen / GLM shadow validation (N=500+ live tool calls) — needs API budget
   - [x] External-corpus replay harness (`scripts/shadow-bench-live.js`) — can replay BFCL/ToolBench when contributors provide a source file
-- [ ] Negative-control corpus in shadow bench (inputs that *should* be rejected)
+- [x] Negative-control corpus in shadow bench (inputs that *should* be rejected) — 13 entries across 4 categories; bench exits non-zero on false-accept; uncovered + fixed 2 validator bugs (Step 1d passThrough leak, unsafe-path acceptance)
 - [x] Codecov badge for branch coverage
 - [x] Bundle-size badge (size-limit or bundlephobia)
 - [ ] `--force` flag for reinstall/upgrade
