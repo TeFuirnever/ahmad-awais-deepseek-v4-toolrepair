@@ -13,9 +13,15 @@ This is a zero-dependency, ~1.5k LoC repair layer for LLM tool calls. The threat
 
 **Do NOT open a public GitHub issue for security reports.**
 
-Email the maintainer (see `package.json` repository → GitHub profile) with subject `[SECURITY] ahmad-awais-deepseek-v4-toolrepair: <short description>`. Expect an acknowledgment within 72 hours.
+Use GitHub's Private Vulnerability Reporting (PVR) to submit a confidential advisory:
 
-Please include:
+**[Report a vulnerability](https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/security/advisories/new)**
+
+1. Click the link above (you must be signed in to GitHub).
+2. Fill in the advisory form — title, description, affected versions, and optional CVSS score.
+3. Submit. The maintainer will receive a private notification and acknowledge within 72 hours.
+
+Please include in the advisory description:
 - A reproduction (model output payload, schema, expected vs. actual repair result).
 - Affected versions.
 - Whether the issue has been disclosed elsewhere.
@@ -49,3 +55,13 @@ These are real risks for a tool-call repair layer and are tracked:
 ## Hall of Fame
 
 Researchers who responsibly disclosed will be credited here (with permission).
+
+## Maintainer Note: Enabling GitHub Private Vulnerability Reporting
+
+PVR must be activated once per repository before the "Report a vulnerability" button becomes visible to external reporters. This is a one-time maintainer action:
+
+1. Go to the repository on GitHub.
+2. Open **Settings → Code security and analysis**.
+3. Under **Private vulnerability reporting**, click **Enable**.
+
+Reporters do not need to take any action — once PVR is enabled, the advisory submission link above works automatically for any signed-in GitHub user.
