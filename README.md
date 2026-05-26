@@ -200,8 +200,8 @@ toolrepair verify
 ## Uninstall
 
 ```bash
-npx ahmad-awais-deepseek-v4-toolrepair uninstall  # one-shot via GitHub
 toolrepair uninstall                              # if you used install.sh / npm link
+rm -rf ~/.toolrepair ~/.local/bin/toolrepair      # full removal for install.sh users
 ```
 
 ## How It Works
