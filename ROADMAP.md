@@ -64,7 +64,7 @@ Schema and reach expansion — driven by real-traffic shadow validation.
 - [x] Bundle-size badge (size-limit or bundlephobia)
 - [ ] `--force` flag for reinstall/upgrade
 - [ ] Node version runtime check
-- [ ] npm publish with `--provenance` — blocked on package-name trademark resolution
+- [ ] npm publish with `--provenance` — deferred. Local install paths (install.sh + `npx --package=github:...` + `git clone + npm link`) cover all install scenarios today; npm publish becomes a v1.2 distribution upgrade, not a v1.1 blocker. Package-name trademark resolution is no longer time-critical.
 - [x] GitHub Private Vulnerability Reporting enabled (SECURITY.md references PVR; enabling the GitHub setting is a maintainer action)
 
 ## v2.0.0 (Future)

@@ -11,6 +11,7 @@ Post-v1.0.0 infrastructure pass. **Contains validator-tightening bug fixes** tha
 
 ### Added
 
+- **Local-install paths** — `install.sh` one-shot installer (`curl -fsSL .../install.sh | sh`), `toolrepair` short bin alias alongside the long official name, README/zh-CN restructured into 3 install paths (install.sh / `npx --package=github:...` / `git clone + npm link`). Removes npm publish as a v1.1 blocker.
 - **TypeScript declarations** (`src/index.d.ts`) — hand-written types mirroring the CJS surface. No build step required.
 - **ESM/CJS dual export** — `src/index.mjs` wrapper via `createRequire`; `exports` map in `package.json` with `import`/`require`/`types`/`default` conditionals. Unblocks Vite, Next 14+, Bun, Deno consumers.
 - **Schema registry expansion 7 → 12 tools** — added `Bash`, `Glob`, `Grep`, `TodoWrite`, `WebFetch` (Claude Code top-5 by call frequency).
@@ -38,7 +39,7 @@ Post-v1.0.0 infrastructure pass. **Contains validator-tightening bug fixes** tha
 
 ### Deferred (with triggers)
 
-- `npm publish --provenance` + Codecov / bundle-size badges — blocked on package-name trademark resolution.
+- `npm publish --provenance` — deferred to v1.2 as a distribution upgrade (local-install paths cover all scenarios today). Package-name trademark resolution no longer time-critical.
 - Live-API benchmark replay (DeepSeek / Qwen / GLM credits) — deferred to v1.1.0.
 
 ---

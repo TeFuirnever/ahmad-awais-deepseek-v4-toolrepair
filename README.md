@@ -16,14 +16,16 @@ Install in 30 seconds. Zero dependencies.
 ### Quick Demo
 
 ```console
-$ npx ahmad-awais-deepseek-v4-toolrepair install
+$ curl -fsSL https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.sh | sh
+toolrepair: node v20.11.0 detected
+toolrepair: cloning to ~/.toolrepair
+toolrepair: linked ~/.local/bin/toolrepair -> ~/.toolrepair/bin/cli.js
 toolrepair: installing for platforms: claude-code, opencode
-toolrepair: global install
 
   claude-code: installed rules, hook
   opencode: installed rules, plugin
 
-$ npx ahmad-awais-deepseek-v4-toolrepair verify
+$ toolrepair verify
 
 toolrepair: claude-code verification
   ✓ hook-registered: OK
@@ -151,33 +153,55 @@ Two-layer defense:
 
 ## Install
 
+> **Not on npm yet — install locally from GitHub.** All three paths below work today without `npm publish`. Pick whichever fits your environment.
+
+### Option 1 — One-shot installer (recommended)
+
 ```bash
-# Auto-detect platform
-npx ahmad-awais-deepseek-v4-toolrepair install
-
-# Specific platform
-npx ahmad-awais-deepseek-v4-toolrepair install --platform opencode
-npx ahmad-awais-deepseek-v4-toolrepair install --platform claude-code
-
-# Rules only
-npx ahmad-awais-deepseek-v4-toolrepair install --rules-only
-
-# Dry run
-npx ahmad-awais-deepseek-v4-toolrepair install --dry-run
+curl -fsSL https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.sh | sh
 ```
 
-> **LLM-first:** Copy this prompt to your AI agent: _"Install ahmad-awais-deepseek-v4-toolrepair from npm and run `npx ahmad-awais-deepseek-v4-toolrepair install` for my platform."_
+Clones to `~/.toolrepair`, symlinks `toolrepair` into `~/.local/bin/`, and runs `toolrepair install` against the auto-detected platform. Uninstall: `rm -rf ~/.toolrepair ~/.local/bin/toolrepair`.
+
+### Option 2 — Run directly via `npx` against GitHub
+
+```bash
+# Auto-detect platform
+npx --package=github:TeFuirnever/ahmad-awais-deepseek-v4-toolrepair toolrepair install
+
+# Specific platform
+npx --package=github:TeFuirnever/ahmad-awais-deepseek-v4-toolrepair toolrepair install --platform opencode
+npx --package=github:TeFuirnever/ahmad-awais-deepseek-v4-toolrepair toolrepair install --platform claude-code
+
+# Rules only / dry run
+npx --package=github:TeFuirnever/ahmad-awais-deepseek-v4-toolrepair toolrepair install --rules-only
+npx --package=github:TeFuirnever/ahmad-awais-deepseek-v4-toolrepair toolrepair install --dry-run
+```
+
+No global install; `npx` caches between invocations.
+
+### Option 3 — `git clone` + `npm link` (contributors)
+
+```bash
+git clone https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair.git
+cd ahmad-awais-deepseek-v4-toolrepair
+npm link
+toolrepair install
+```
+
+> **LLM-first:** Copy this prompt to your AI agent: _"Install ahmad-awais-deepseek-v4-toolrepair from GitHub: `curl -fsSL https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.sh | sh`."_
 
 ## Verify
 
 ```bash
-npx ahmad-awais-deepseek-v4-toolrepair verify
+toolrepair verify
 ```
 
 ## Uninstall
 
 ```bash
-npx ahmad-awais-deepseek-v4-toolrepair uninstall
+npx ahmad-awais-deepseek-v4-toolrepair uninstall  # one-shot via GitHub
+toolrepair uninstall                              # if you used install.sh / npm link
 ```
 
 ## How It Works

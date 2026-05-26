@@ -19,7 +19,8 @@
   "bugs": "https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/issues",
   "homepage": "https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair#readme",
   "bin": {
-    "ahmad-awais-deepseek-v4-toolrepair": "bin/cli.js"
+    "ahmad-awais-deepseek-v4-toolrepair": "bin/cli.js",
+    "toolrepair": "bin/cli.js"
   },
   "main": "./src/index.js",
   "module": "./src/index.mjs",

@@ -123,33 +123,55 @@
 
 ## 安装
 
+> **尚未发布到 npm —— 直接从 GitHub 本地安装。** 下面三条路径都不依赖 `npm publish`，选最适合你的环境。
+
+### 方式一：一键脚本（推荐）
+
 ```bash
-# 自动检测平台
-npx ahmad-awais-deepseek-v4-toolrepair install
-
-# 指定平台
-npx ahmad-awais-deepseek-v4-toolrepair install --platform opencode
-npx ahmad-awais-deepseek-v4-toolrepair install --platform claude-code
-
-# 仅规则
-npx ahmad-awais-deepseek-v4-toolrepair install --rules-only
-
-# 演习
-npx ahmad-awais-deepseek-v4-toolrepair install --dry-run
+curl -fsSL https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.sh | sh
 ```
 
-> **LLM 优先：** 复制这段话给你的 AI agent："从 npm 安装 ahmad-awais-deepseek-v4-toolrepair，然后运行 `npx ahmad-awais-deepseek-v4-toolrepair install` 对我的平台执行安装。"
+会克隆到 `~/.toolrepair`，将 `toolrepair` 软链到 `~/.local/bin/`，并对自动检测到的平台运行 `toolrepair install`。卸载：`rm -rf ~/.toolrepair ~/.local/bin/toolrepair`。
+
+### 方式二：`npx` 直接拉 GitHub 仓库
+
+```bash
+# 自动检测平台
+npx --package=github:TeFuirnever/ahmad-awais-deepseek-v4-toolrepair toolrepair install
+
+# 指定平台
+npx --package=github:TeFuirnever/ahmad-awais-deepseek-v4-toolrepair toolrepair install --platform opencode
+npx --package=github:TeFuirnever/ahmad-awais-deepseek-v4-toolrepair toolrepair install --platform claude-code
+
+# 仅规则 / 演习
+npx --package=github:TeFuirnever/ahmad-awais-deepseek-v4-toolrepair toolrepair install --rules-only
+npx --package=github:TeFuirnever/ahmad-awais-deepseek-v4-toolrepair toolrepair install --dry-run
+```
+
+不污染全局；`npx` 会在多次调用之间缓存。
+
+### 方式三：`git clone` + `npm link`（贡献者）
+
+```bash
+git clone https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair.git
+cd ahmad-awais-deepseek-v4-toolrepair
+npm link
+toolrepair install
+```
+
+> **LLM 优先：** 复制这段话给你的 AI agent："从 GitHub 安装 ahmad-awais-deepseek-v4-toolrepair：`curl -fsSL https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.sh | sh`。"
 
 ## 验证
 
 ```bash
-npx ahmad-awais-deepseek-v4-toolrepair verify
+toolrepair verify
 ```
 
 ## 卸载
 
 ```bash
-npx ahmad-awais-deepseek-v4-toolrepair uninstall
+toolrepair uninstall                              # 用 install.sh / npm link 安装的
+rm -rf ~/.toolrepair ~/.local/bin/toolrepair      # 彻底清掉 install.sh 装的痕迹
 ```
 
 ## 原理
