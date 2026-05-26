@@ -10,6 +10,8 @@
 [![Zero deps](https://img.shields.io/badge/dependencies-0-brightgreen)](package.json)
 [![GitHub stars](https://img.shields.io/github/stars/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair)](https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair)](https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/issues)
+[![codecov](https://codecov.io/gh/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/branch/main/graph/badge.svg)](https://codecov.io/gh/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair)
+[![install size](https://packagephobia.com/badge?p=ahmad-awais-deepseek-v4-toolrepair)](https://packagephobia.com/result?p=ahmad-awais-deepseek-v4-toolrepair)
 
 自动修复 DeepSeek V4 在 Claude Code CLI 和 OpenCode 中的工具调用格式错误。
 
@@ -28,7 +30,7 @@
 | 修复（本库） | 32 / 33 | **97.0%** |
 | **提升** | +25 | **+75.8 个百分点** |
 
-复现：`node scripts/shadow-bench.js`。
+复现：`node scripts/shadow-bench.js`。另有 `scripts/shadow-bench-live.js` 可在贡献者提供源文件时回放 BFCL/ToolBench 语料（详见 CONTRIBUTING.md）。
 
 ## 与 `json-repair` / `zod-validation-error` / `partial-json` 有何不同？
 

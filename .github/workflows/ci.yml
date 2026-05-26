@@ -19,3 +19,47 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: npm test
       - run: node test/benchmark.js
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run tests with coverage
+        run: |
+          mkdir -p coverage
+          node --experimental-test-coverage \
+            --test-reporter=lcov \
+            --test-reporter-destination=coverage/lcov.info \
+            test/**/*.test.js
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+
+  bundle-size:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Bundle size
+        run: |
+          node -e "
+            const {gzipSync} = require('zlib');
+            const {readFileSync} = require('fs');
+            const files = ['src/index.js', 'src/index.mjs', 'src/constants.js'];
+            let total = 0;
+            files.forEach(f => {
+              try {
+                const gz = gzipSync(readFileSync(f)).length;
+                total += gz;
+                console.log(f + ': ' + gz + ' bytes (gzip)');
+              } catch(e) { console.log(f + ': (not found)'); }
+            });
+            console.log('total public entrypoints gzip: ' + total + ' bytes (' + (total/1024).toFixed(2) + ' KB)');
+          "

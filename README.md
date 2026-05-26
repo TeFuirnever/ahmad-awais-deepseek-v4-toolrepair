@@ -10,6 +10,8 @@ Install in 30 seconds. Zero dependencies.
 [![Zero deps](https://img.shields.io/badge/dependencies-0-brightgreen)](package.json)
 [![GitHub stars](https://img.shields.io/github/stars/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair)](https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair)](https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/issues)
+[![codecov](https://codecov.io/gh/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/branch/main/graph/badge.svg)](https://codecov.io/gh/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair)
+[![install size](https://packagephobia.com/badge?p=ahmad-awais-deepseek-v4-toolrepair)](https://packagephobia.com/result?p=ahmad-awais-deepseek-v4-toolrepair)
 
 ### Quick Demo
 
@@ -56,7 +58,7 @@ Recorded-corpus benchmark over 33 real failure patterns from DeepSeek V4 / Qwen 
 | Repaired (this lib)  | 32 / 33 | **97.0%** |
 | **Uplift** | +25 | **+75.8 pts** |
 
-Reproduce: `node scripts/shadow-bench.js`.
+Reproduce: `node scripts/shadow-bench.js`. A `scripts/shadow-bench-live.js` harness also exists for replaying BFCL/ToolBench corpora when contributors provide a source file (see CONTRIBUTING.md).
 
 ## How is this different from `json-repair` / `zod-validation-error` / `partial-json`?
 
