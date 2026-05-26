@@ -5,6 +5,8 @@ Install in 30 seconds. Zero dependencies.
 [![npm version](https://img.shields.io/npm/v/ahmad-awais-deepseek-v4-toolrepair)](https://www.npmjs.com/package/ahmad-awais-deepseek-v4-toolrepair)
 [![npm downloads](https://img.shields.io/npm/dw/ahmad-awais-deepseek-v4-toolrepair)](https://www.npmjs.com/package/ahmad-awais-deepseek-v4-toolrepair)
 [![CI](https://img.shields.io/github/actions/workflow/status/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/ci.yml)](https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/actions)
+[![Codecov](https://img.shields.io/codecov/c/github/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair)](https://app.codecov.io/gh/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair)
+[![Bundle size](https://img.shields.io/badge/size-674_B_gzip-brightgreen)](https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/blob/main/.github/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 [![Zero deps](https://img.shields.io/badge/dependencies-0-brightgreen)](package.json)
