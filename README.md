@@ -43,6 +43,32 @@ Auto-repair DeepSeek V4 tool-calling quirks in Claude Code CLI and OpenCode.
 
 Based on [Ahmad Awais](https://x.com/MrAhmadAwais)'s research: a tool-input repair layer made DeepSeek V4 Pro beat Opus 4.7 **6/10 times** in internal evals.
 
+> "One repair layer. Open models now beat Opus 4.7 in our tool-calling evals."
+> — [Ahmad Awais (@MrAhmadAwais)](https://x.com/MrAhmadAwais/status/2050956678502420612)
+
+### Before / After (shadow benchmark)
+
+Recorded-corpus benchmark over 33 real failure patterns from DeepSeek V4 / Qwen / GLM tool calls. Oracle = schema validation. Live-API replay is deferred to v1.1.0; methodology and raw counts are committed in [`bench-results.json`](bench-results.json).
+
+| Pass | Accepted | Rate |
+|---|---|---|
+| Baseline (no repair) | 7 / 33 | **21.2%** |
+| Repaired (this lib)  | 32 / 33 | **97.0%** |
+| **Uplift** | +25 | **+75.8 pts** |
+
+Reproduce: `node scripts/shadow-bench.js`.
+
+## How is this different from `json-repair` / `zod-validation-error` / `partial-json`?
+
+| Library | Solves | This library |
+|---|---|---|
+| [`json-repair`](https://www.npmjs.com/package/json-repair) / [`jsonrepair`](https://www.npmjs.com/package/jsonrepair) | Fixes malformed JSON syntax (missing quotes, trailing commas) | We assume JSON parses; we fix **post-parse semantic shape errors** (null in optional fields, JSON-string-in-array-slot, bare string where array expected) |
+| [`zod-validation-error`](https://www.npmjs.com/package/zod-validation-error) | Pretty-prints Zod errors for humans | We **repair** the input so the call succeeds, then return a model-readable retry message if repair fails |
+| [`partial-json`](https://www.npmjs.com/package/partial-json) | Parses streaming/truncated JSON | We act on complete tool-call payloads, not partial streams |
+| [`ajv`](https://www.npmjs.com/package/ajv) / [`zod`](https://www.npmjs.com/package/zod) | General-purpose schema validation | We're tool-call-specific: schema-aware autolink scoping, relational invariants (offset/limit), validate-then-repair (no false positives) |
+
+Use this when your model emits structurally valid JSON but the **shape doesn't match the tool's schema** — a class of errors generic JSON repair libraries pass through unchanged.
+
 ## The Fix in One Glance
 
 ### Before (DeepSeek V4 raw output → crashes)
@@ -188,16 +214,72 @@ Tool call arrives
 
 Plus: autolink detection (scoped to `path`-typed fields), relational invariant fixing (offset/limit), security guards (rejects path traversal, control chars, HTML).
 
+## Each fix: Problem → Principle → Test
+
+Every repair documents (a) the model behavior that triggers it, (b) the invariant that justifies fixing it, and (c) a one-liner you can paste into a Node REPL to verify the fix triggers on your version.
+
+### 1. `remove-nulls`
+- **Problem:** DeepSeek V4 / Qwen / GLM emit `null` for optional fields the schema treats as absent (e.g. `read_file({offset: null, limit: null})`).
+- **Principle:** `null` is never a valid value for an optional scalar in our schemas; absence is. Stripping is lossless.
+- **Verify:** `node -e "const {repair}=require('.');console.log(repair.validateAndRepair('read_file',{file_path:'/x',offset:null}).fixes)"` → fix entry with `type:'remove-nulls'`.
+
+### 2. `parse-json-array`
+- **Problem:** Models stringify array arguments: `execute_command({args:'["ls","-la"]'})`.
+- **Principle:** When the schema says `array` and the input is a string whose `JSON.parse` yields an array, parse it. Only on array-typed fields, only on parse success.
+- **Verify:** `node -e "const {repair}=require('.');console.log(repair.validateAndRepair('execute_command',{command:'ls',args:'[\"-la\"]'}).fixes)"` → `parse-json-array`.
+
+### 3. `wrap-single-object` / 4. `wrap-bare-string`
+- **Problem:** Models pass a scalar or single object where the schema expects an array.
+- **Principle:** A 1-element array is the conservative coercion; runs strictly after `parse-json-array` to avoid double-wrapping a parseable string.
+- **Verify:** `node -e "const {repair}=require('.');console.log(repair.validateAndRepair('execute_command',{command:'ls',args:'-la'}).fixes)"` → `wrap-bare-string`.
+
+### 5. `autolink-fix`
+- **Problem:** Models render paths as Markdown autolinks: `file_path: '[notes.md](http://notes.md)'`.
+- **Principle:** Only applied to fields the schema tags as `path`. Rejects `..`, control chars, `<>` to prevent traversal/HTML injection.
+- **Verify:** `node -e "const {repair}=require('.');console.log(repair.validateAndRepair('read_file',{file_path:'[a.md](http://a.md)'}).input)"` → `{file_path:'a.md'}`.
+
+### 6. `relational-fixes`
+- **Problem:** `read_file({offset: 100})` without `limit` (or vice versa) — the platform requires both or neither.
+- **Principle:** Enforce the documented co-occurrence invariant. Drop the lone field; emit a note.
+- **Verify:** `node -e "const {repair}=require('.');console.log(repair.validateAndRepair('read_file',{file_path:'/x',offset:100}).fixes)"` → relational fix note.
+
+## When repair fails
+
+The library never throws on input shape — failures surface as `result.errors[]` with `result.repaired === false`. If you see unexpected rejection:
+
+1. **Log the raw input** before calling `validateAndRepair`. Most "false rejections" are an unfamiliar shape we don't have a fix for yet — please file a [Bug report](.github/ISSUE_TEMPLATE/bug_report.md) with that payload.
+2. **Inspect telemetry.** `logTelemetry` writes one JSON line per call to stderr: `{tool, repaired, passThrough, fixes:[...], errors:[...]}`. No field *values* are emitted — only metadata. Grep for `"repaired":false` to find rejections.
+3. **Check the schema.** `getSchema(toolName)` returns `undefined` for unknown tools — those pass through unmodified. If you expected a fix, add the tool to `src/repair/schemas.js`.
+4. **Reproduce in the bench.** Add the failing payload to `scripts/shadow-bench.js` corpus and re-run — if baseline rejects and repair still rejects, the gap is real.
+5. **Common false-negative:** `parse-json-array` requires the string to `JSON.parse` cleanly into an array. `args: "[ls, -la]"` (unquoted) won't parse — that's a model-prompting fix, not a repair fix.
+
+## Semver policy for heuristic changes
+
+Repair behavior is part of the public contract. Versioning follows:
+
+| Change | Bump |
+|---|---|
+| New fix added (new input now repaired) | **minor** |
+| New tool schema added | **minor** |
+| Existing fix produces a *different output* for the same input | **major** |
+| Existing fix narrowed (input now rejected that previously repaired) | **major** |
+| Pure refactor / docs / test changes | **patch** |
+| TypeScript surface (`src/index.d.ts`) widened | **minor** |
+| TypeScript surface narrowed/removed | **major** |
+
+Rationale: consumers depend on the repaired *output*, not just on "did it pass." A silent change in repair output is a contract break even if no API changed.
+
 ## Quality
 
 | Metric | Value |
 |---|---|
-| Tests | 109 / 109 ✅ |
+| Tests | 127 / 127 ✅ |
 | Benchmark scenarios | 12 / 12 — 100% success ✅ |
+| Shadow bench (recorded corpus) | 32 / 33 — baseline 21.2% → repaired 97.0% ✅ |
 | Line coverage | 100% ✅ |
 | Function coverage | 100% ✅ |
 | Runtime dependencies | 0 |
-| Supported tools | 7 (`read_file`, `write_to_file`, `edit_file`, `search_content`, `execute_command`, `list_files`, `Read`) |
+| Supported tools | 12 (`read_file`, `write_to_file`, `edit_file`, `search_content`, `execute_command`, `list_files`, `Read`, `Bash`, `Glob`, `Grep`, `TodoWrite`, `WebFetch`) |
 
 ## Contributing
 

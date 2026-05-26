@@ -15,6 +15,32 @@
 
 基于 [Ahmad Awais](https://x.com/MrAhmadAwais) 的研究：一个工具输入修复层让 DeepSeek V4 Pro 在内部评估中以 **6/10 概率**超越 Opus 4.7。
 
+> "一个修复层。开源模型在我们的工具调用评估中现在能击败 Opus 4.7。"
+> — [Ahmad Awais (@MrAhmadAwais)](https://x.com/MrAhmadAwais/status/2050956678502420612)
+
+### Before / After（影子基准）
+
+基于 33 条来自 DeepSeek V4 / Qwen / GLM 真实失败模式的录制语料。Oracle = schema 验证。真实 API 回放推迟至 v1.1.0；方法学与原始计数提交在 [`bench-results.json`](bench-results.json)。
+
+| 流程 | 接受 | 通过率 |
+|---|---|---|
+| 基线（不修复） | 7 / 33 | **21.2%** |
+| 修复（本库） | 32 / 33 | **97.0%** |
+| **提升** | +25 | **+75.8 个百分点** |
+
+复现：`node scripts/shadow-bench.js`。
+
+## 与 `json-repair` / `zod-validation-error` / `partial-json` 有何不同？
+
+| 库 | 解决什么 | 本库 |
+|---|---|---|
+| [`json-repair`](https://www.npmjs.com/package/json-repair) / [`jsonrepair`](https://www.npmjs.com/package/jsonrepair) | 修复 JSON 语法错误（缺引号、尾逗号） | 我们假设 JSON 可解析；修复**解析后的语义形状错误**（可选字段 null、JSON 字符串在 array 位、bare string 在 array 位） |
+| [`zod-validation-error`](https://www.npmjs.com/package/zod-validation-error) | 美化 Zod 错误给人看 | 我们**修复**输入让调用成功，修复失败时返回模型可读的重试消息 |
+| [`partial-json`](https://www.npmjs.com/package/partial-json) | 解析流式/截断 JSON | 我们处理完整工具调用负载，不处理流 |
+| [`ajv`](https://www.npmjs.com/package/ajv) / [`zod`](https://www.npmjs.com/package/zod) | 通用 schema 验证 | 我们针对工具调用：schema 感知的 autolink 范围限定、关系不变量（offset/limit）、先验证后修复（无误报） |
+
+当你的模型输出结构合法的 JSON 但**形状不匹配工具 schema** 时使用本库——这类错误通用 JSON 修复库会原样放行。
+
 ## 一键见效
 
 ### 修复前（DeepSeek V4 原始输出 → 崩溃）
@@ -122,16 +148,72 @@ npx ahmad-awais-deepseek-v4-toolrepair uninstall
 
 附加：autolink 检测（仅作用于 `path` 类型字段）、关系不变量修复（offset/limit）、安全护栏（拒绝路径穿越、控制字符、HTML）。
 
+## 每个修复：问题 → 原则 → 测试
+
+每个修复都记录 (a) 触发它的模型行为，(b) 证明修复合理的不变量，(c) 可粘到 Node REPL 验证修复生效的一行命令。
+
+### 1. `remove-nulls`
+- **问题：** DeepSeek V4 / Qwen / GLM 对 schema 视为缺省的可选字段发出 `null`（如 `read_file({offset: null, limit: null})`）。
+- **原则：** 可选标量字段中 `null` 永不合法；缺省才合法。剥离无损。
+- **验证：** `node -e "const {repair}=require('.');console.log(repair.validateAndRepair('read_file',{file_path:'/x',offset:null}).fixes)"` → 含 `type:'remove-nulls'` 的条目。
+
+### 2. `parse-json-array`
+- **问题：** 模型将数组参数字符串化：`execute_command({args:'["ls","-la"]'})`。
+- **原则：** 当 schema 声明 `array` 且输入是 `JSON.parse` 后能得到数组的字符串时，解析它。仅在 array 类型字段，仅在解析成功时。
+- **验证：** `node -e "const {repair}=require('.');console.log(repair.validateAndRepair('execute_command',{command:'ls',args:'[\"-la\"]'}).fixes)"` → `parse-json-array`。
+
+### 3. `wrap-single-object` / 4. `wrap-bare-string`
+- **问题：** 模型在 schema 期望数组的位置传入标量或单个对象。
+- **原则：** 包成 1 元素数组是保守强转；严格运行在 `parse-json-array` 之后，避免对可解析字符串重复包装。
+- **验证：** `node -e "const {repair}=require('.');console.log(repair.validateAndRepair('execute_command',{command:'ls',args:'-la'}).fixes)"` → `wrap-bare-string`。
+
+### 5. `autolink-fix`
+- **问题：** 模型把路径渲染成 Markdown autolink：`file_path: '[notes.md](http://notes.md)'`。
+- **原则：** 仅对 schema 标记为 `path` 的字段生效。拒绝 `..`、控制字符、`<>` 以防穿越/HTML 注入。
+- **验证：** `node -e "const {repair}=require('.');console.log(repair.validateAndRepair('read_file',{file_path:'[a.md](http://a.md)'}).input)"` → `{file_path:'a.md'}`。
+
+### 6. `relational-fixes`
+- **问题：** `read_file({offset: 100})` 缺 `limit`（或反之）—— 平台要求两者皆有或皆无。
+- **原则：** 强制共现不变量。丢弃孤立字段，发出 note。
+- **验证：** `node -e "const {repair}=require('.');console.log(repair.validateAndRepair('read_file',{file_path:'/x',offset:100}).fixes)"` → 关系修复 note。
+
+## 修复失败时
+
+本库对输入形状从不抛异常 —— 失败以 `result.errors[]` 和 `result.repaired === false` 暴露。若遇到非预期拒绝：
+
+1. **打印原始输入** 在调用 `validateAndRepair` 之前。多数"误拒"是我们尚未覆盖的新形状 —— 请用该 payload 提交 [Bug report](.github/ISSUE_TEMPLATE/bug_report.md)。
+2. **检视 telemetry。** `logTelemetry` 每次调用向 stderr 写一行 JSON：`{tool, repaired, passThrough, fixes:[...], errors:[...]}`。不包含字段*值*，仅元数据。`grep "\"repaired\":false"` 找出被拒条目。
+3. **检查 schema。** `getSchema(toolName)` 对未知工具返回 `undefined`，那些会原样透传。若期望修复，请把工具加入 `src/repair/schemas.js`。
+4. **在 bench 中复现。** 把失败 payload 加入 `scripts/shadow-bench.js` 语料并重跑 —— 若 baseline 拒绝且 repair 仍拒绝，则确为 gap。
+5. **常见假阴：** `parse-json-array` 要求字符串能干净 `JSON.parse` 为数组。`args: "[ls, -la]"`（未引号）不会被解析 —— 属于模型 prompt 修复，不属于本库修复范畴。
+
+## 启发式变更的 semver 政策
+
+修复行为属于公开契约。版本号遵循：
+
+| 变更 | bump |
+|---|---|
+| 新增修复（新输入现在被修复） | **minor** |
+| 新增工具 schema | **minor** |
+| 既有修复对同一输入产生*不同输出* | **major** |
+| 既有修复收窄（之前能修，现在被拒） | **major** |
+| 纯重构 / 文档 / 测试改动 | **patch** |
+| TypeScript 表面（`src/index.d.ts`）扩大 | **minor** |
+| TypeScript 表面收窄/移除 | **major** |
+
+理由：消费者依赖修复后的*输出*，而非仅"是否通过"。修复输出的静默变化即便没有 API 变更也是契约破裂。
+
 ## 质量
 
 | 指标 | 数值 |
 |---|---|
-| 测试 | 109 / 109 ✅ |
+| 测试 | 127 / 127 ✅ |
 | Benchmark 场景 | 12 / 12 — 100% 成功率 ✅ |
+| 影子基准（录制语料） | 32 / 33 — 基线 21.2% → 修复 97.0% ✅ |
 | 行覆盖率 | 100% ✅ |
 | 函数覆盖率 | 100% ✅ |
 | 运行时依赖 | 0 |
-| 支持工具 | 7（`read_file`、`write_to_file`、`edit_file`、`search_content`、`execute_command`、`list_files`、`Read`） |
+| 支持工具 | 12（`read_file`、`write_to_file`、`edit_file`、`search_content`、`execute_command`、`list_files`、`Read`、`Bash`、`Glob`、`Grep`、`TodoWrite`、`WebFetch`） |
 
 ## 参与贡献
 
