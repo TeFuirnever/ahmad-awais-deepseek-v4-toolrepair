@@ -22,6 +22,17 @@
     "ahmad-awais-deepseek-v4-toolrepair": "bin/cli.js"
   },
   "main": "./src/index.js",
+  "module": "./src/index.mjs",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.mjs",
+      "require": "./src/index.js",
+      "default": "./src/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "bin/",
     "src/",
