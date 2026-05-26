@@ -1,5 +1,38 @@
 # Changelog
 
+## 1.0.2 — 2026-05-26
+
+**BREAKING-FIX for OpenCode users.** v1.0.0 and v1.0.1 shipped an OpenCode plugin whose `tool.execute.before` hook used the wrong signature — it read `input.parameters` while the real OpenCode API passes args via `output.args`. Result: the repair layer never fired on OpenCode. All 109 prior tests passed because they exercised the `validateAndRepair` pure function, never the plugin-hook integration. Users on v1.0.0 / v1.0.1 should upgrade. Claude Code path (CLAUDE.md rules + PostToolUseFailure hook) was unaffected.
+
+### Fixed (OpenCode plugin layer)
+
+- **Hook signature** — `tool.execute.before` now reads `output.args` (correct per `@opencode-ai/plugin`), not `input.parameters` (always `undefined`). Plugin previously appeared to load successfully but mutated nothing.
+- **Removed broken `tool.execute.after` failure-injection path** — the hook only fires on tool *success* in OpenCode and `output` carries no `error` field. The branch was dead code that pretended to inject retry guidance.
+- **In-place arg mutation + reassign** — empirical testing showed OpenCode captures `output.args` by reference at hook-call time; pure reassignment didn't always propagate. Plugin now mutates the original object in place AND reassigns, so either capture pattern works.
+- **CJS → ESM (`.mjs`)** — OpenCode loads `file://` plugins via dynamic `import()` and rejects CJS `module.exports = fn` with `Plugin export is not a function`. Plugin converted to `export default async function` with `createRequire` shim for the CJS `./repair/*` siblings.
+- **Schema registry: 7 OpenCode tool names added** — `read`, `glob`, `grep`, `edit`, `write`, `todowrite`, `webfetch` (lowercase ids, **camelCase** params: `filePath` / `oldString` / `newString` / `replaceAll`). Previously the registry only knew the legacy `read_file` / `Read` / `Bash` names, so every real OpenCode tool call took the passthrough branch with no repair attempted. Schema count: 12 → 19.
+
+### Added
+
+- **`test/integration/opencode-plugin-hook.test.js`** — loads the real `.mjs` plugin via dynamic import, asserts `tool.execute.before` mutates `output.args` for `read` / `glob` / `todowrite`, asserts no-op on valid input and unknown tools. Would have caught all three of the bugs above. Test count: 147 → 157.
+
+### Changed (installer)
+
+- `install.js`: copies `tool-repair-plugin.mjs` (was `.js`); for **global** installs registers `file://` absolute path in `opencode.json`; for **project** installs relies on OpenCode's auto-discovery of `.opencode/plugin/*` and skips the config entry entirely.
+- `uninstall.js`: removes both `.mjs` and legacy `.js`, strips both PLUGIN_NAME and `file://` specs from the config so upgraders from 1.0.0/1.0.1 get a clean state.
+- `verify.js`: looks for `.mjs`, accepts either legacy PLUGIN_NAME or current `file://` spec, reports `plugin-registered: AUTO_DISCOVERY` for project-local installs.
+
+### Verified live
+
+End-to-end test against OpenCode 1.15.10 + DeepSeek V4 Pro:
+
+```
+{"event":"tool_input_repaired","tool":"read","repaired":true,"fixes":["remove-nulls"]}
+{"event":"tool_input_repaired","tool":"todowrite","repaired":true,"fixes":["parse-json-array"]}
+```
+
+Both calls succeeded after repair where v1.0.0/v1.0.1 would have failed with `SchemaError`.
+
 ## Unreleased
 
 Post-v1.0.0 infrastructure pass. **Contains validator-tightening bug fixes** that narrow accepted-input surface — see Fixed section. Per semver policy this would normally trigger a major bump, but the prior behavior was a documented-as-impossible silent acceptance of invalid input (treated as a bug, not contract). Bump target: minor (1.1.0) with prominent CHANGELOG note.

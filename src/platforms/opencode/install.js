@@ -5,19 +5,22 @@ const fs = require('fs');
 const { backupFile, atomicWrite } = require('../../utils/fs-utils');
 const { RULES_MARKER_START, RULES_MARKER_END, PLUGIN_NAME } = require('../../constants');
 
-function installPlugin(opencodeConfigPath, projectDir, sourceDir, skipBackup) {
-  // PLUGIN_NAME imported from constants
-
-  // Ensure .opencode directory exists in project
-  const opencodeDir = path.join(projectDir, '.opencode');
-  const pluginDir = path.join(opencodeDir, 'plugin');
+function installPlugin(opencodeConfigPath, projectDir, sourceDir, skipBackup, isGlobal) {
+  // For global installs, plugin lives under ~/.config/opencode/plugin/;
+  // for project installs, under <project>/.opencode/plugin/ where OpenCode
+  // auto-discovers it without needing a config entry.
+  const os = require('os');
+  const home = os.homedir();
+  const pluginDir = isGlobal
+    ? path.join(home, '.config', 'opencode', 'plugin')
+    : path.join(projectDir, '.opencode', 'plugin');
   if (!fs.existsSync(pluginDir)) {
     fs.mkdirSync(pluginDir, { recursive: true });
   }
 
-  // Copy plugin and its repair engine dependency
-  const pluginSrc = path.join(sourceDir, 'src', 'platforms', 'opencode', 'plugin', 'tool-repair-plugin.js');
-  const pluginDest = path.join(pluginDir, 'tool-repair-plugin.js');
+  // Copy ESM plugin file
+  const pluginSrc = path.join(sourceDir, 'src', 'platforms', 'opencode', 'plugin', 'tool-repair-plugin.mjs');
+  const pluginDest = path.join(pluginDir, 'tool-repair-plugin.mjs');
   fs.copyFileSync(pluginSrc, pluginDest);
   fs.chmodSync(pluginDest, 0o444);
 
@@ -33,7 +36,12 @@ function installPlugin(opencodeConfigPath, projectDir, sourceDir, skipBackup) {
     }
   }
 
-  // Update opencode.json
+  // For project-local installs, OpenCode auto-discovers .opencode/plugin/*.
+  // For global installs, the config must point at the file:// URL explicitly.
+  if (!isGlobal) {
+    return { installed: true, path: pluginDest };
+  }
+
   backupFile(opencodeConfigPath, skipBackup);
 
   let config;
@@ -43,14 +51,19 @@ function installPlugin(opencodeConfigPath, projectDir, sourceDir, skipBackup) {
     config = {};
   }
 
+  const pluginSpec = 'file://' + pluginDest;
   if (!config.plugin) config.plugin = [];
-  if (!config.plugin.includes(PLUGIN_NAME)) {
-    config.plugin.push(PLUGIN_NAME);
+  // Remove any legacy entries pointing at npm-style PLUGIN_NAME or old .js path
+  config.plugin = config.plugin.filter(p =>
+    p !== PLUGIN_NAME && p !== 'file://' + pluginDest.replace(/\.mjs$/, '.js')
+  );
+  if (!config.plugin.includes(pluginSpec)) {
+    config.plugin.push(pluginSpec);
     atomicWrite(opencodeConfigPath, JSON.stringify(config, null, 2));
     return { installed: true, path: pluginDest };
   }
 
-  return { installed: false, reason: 'already-present' };
+  return { installed: false, reason: 'already-present', path: pluginDest };
 }
 
 function installRules(agentsMdPath, claudeMdPath, sourceDir, skipBackup) {
@@ -115,7 +128,7 @@ async function install(options = {}) {
       if (!fs.existsSync(configDir)) {
         fs.mkdirSync(configDir, { recursive: true });
       }
-      const pluginResult = installPlugin(opencodeConfigPath, projectDir, sourceDir, skipBackup);
+      const pluginResult = installPlugin(opencodeConfigPath, projectDir, sourceDir, skipBackup, isGlobal);
       result.pluginInstalled = pluginResult.installed;
       if (pluginResult.reason) result.pluginReason = pluginResult.reason;
       result.pluginPath = pluginResult.path;

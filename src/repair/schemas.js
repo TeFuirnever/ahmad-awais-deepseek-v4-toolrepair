@@ -72,6 +72,41 @@ const toolSchemas = {
     url: 'string!',
     prompt: 'string!',
   },
+  // OpenCode tool surface (lowercase ids, camelCase params per opencode/src/tool/*.ts).
+  // Added in v1.0.2 after discovering the OpenCode plugin hook was routing real
+  // tool calls (e.g. `read`, `glob`) past an empty schema registry — repair never fired.
+  read: {
+    filePath: 'path!',
+    offset: 'number',
+    limit: 'number',
+  },
+  glob: {
+    pattern: 'string!',
+    path: 'path',
+  },
+  grep: {
+    pattern: 'string!',
+    path: 'path',
+    include: 'string',
+  },
+  edit: {
+    filePath: 'path!',
+    oldString: 'string!',
+    newString: 'string!',
+    replaceAll: 'boolean',
+  },
+  write: {
+    filePath: 'path!',
+    content: 'string!',
+  },
+  todowrite: {
+    todos: 'array!',
+  },
+  webfetch: {
+    url: 'string!',
+    format: 'string',
+    timeout: 'number',
+  },
 };
 
 function getSchema(toolName) {

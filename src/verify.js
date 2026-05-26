@@ -74,21 +74,35 @@ function verifyOpenCode(isGlobal, projectDir) {
 
   const checks = [];
 
-  // Check plugin in opencode.json
-  if (fs.existsSync(opencodeConfigPath)) {
-    try {
-      const config = JSON.parse(fs.readFileSync(opencodeConfigPath, 'utf8'));
-      const hasPlugin = config.plugin?.includes(PLUGIN_NAME);
-      checks.push({ item: 'plugin-registered', status: hasPlugin ? 'OK' : 'MISSING' });
-    } catch (e) {
-      checks.push({ item: 'opencode-json', status: 'INVALID' });
+  // Resolve where the plugin file should live.
+  const pluginDir = isGlobal
+    ? path.join(home, '.config', 'opencode', 'plugin')
+    : path.join(projectDir, '.opencode', 'plugin');
+  const pluginPath = path.join(pluginDir, 'tool-repair-plugin.mjs');
+
+  // For global installs the config must explicitly register the plugin;
+  // for project-local installs OpenCode auto-discovers .opencode/plugin/*,
+  // so a registry entry is optional. Accept both PLUGIN_NAME (legacy) and
+  // the file:// absolute path (current installer output).
+  if (isGlobal) {
+    if (fs.existsSync(opencodeConfigPath)) {
+      try {
+        const config = JSON.parse(fs.readFileSync(opencodeConfigPath, 'utf8'));
+        const registered = Array.isArray(config.plugin) && config.plugin.some(spec =>
+          spec === PLUGIN_NAME || spec === 'file://' + pluginPath
+        );
+        checks.push({ item: 'plugin-registered', status: registered ? 'OK' : 'MISSING' });
+      } catch (e) {
+        checks.push({ item: 'opencode-json', status: 'INVALID' });
+      }
+    } else {
+      checks.push({ item: 'opencode-json', status: 'NOT_FOUND' });
     }
   } else {
-    checks.push({ item: 'opencode-json', status: 'NOT_FOUND' });
+    checks.push({ item: 'plugin-registered', status: 'AUTO_DISCOVERY' });
   }
 
   // Check plugin file
-  const pluginPath = path.join(projectDir, '.opencode', 'plugin', 'tool-repair-plugin.js');
   checks.push({
     item: 'plugin-script',
     status: fs.existsSync(pluginPath) ? 'OK' : 'MISSING',

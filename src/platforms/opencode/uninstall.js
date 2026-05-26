@@ -5,32 +5,51 @@ const fs = require('fs');
 const { backupFile, atomicWrite } = require('../../utils/fs-utils');
 const { RULES_MARKER_START, RULES_MARKER_END, PLUGIN_NAME } = require('../../constants');
 
-function uninstallPlugin(opencodeConfigPath, projectDir, skipBackup) {
-  if (!fs.existsSync(opencodeConfigPath)) {
-    return { removed: false, reason: 'config-not-found' };
+function uninstallPlugin(opencodeConfigPath, projectDir, skipBackup, isGlobal) {
+  const home = os.homedir();
+  const pluginDir = isGlobal
+    ? path.join(home, '.config', 'opencode', 'plugin')
+    : path.join(projectDir, '.opencode', 'plugin');
+  const pluginPathMjs = path.join(pluginDir, 'tool-repair-plugin.mjs');
+  const pluginPathJs = path.join(pluginDir, 'tool-repair-plugin.js');
+  const repairDir = path.join(pluginDir, 'repair');
+
+  let removedPlugin = false;
+
+  // Strip any plugin entry referencing our plugin from the config (global path).
+  // For project-local installs OpenCode auto-discovers .opencode/plugin/, so the
+  // config may not list anything — we still need to remove the files below.
+  if (fs.existsSync(opencodeConfigPath)) {
+    const config = JSON.parse(fs.readFileSync(opencodeConfigPath, 'utf8'));
+    if (Array.isArray(config.plugin) && config.plugin.length > 0) {
+      const before = config.plugin.length;
+      config.plugin = config.plugin.filter(spec =>
+        spec !== PLUGIN_NAME &&
+        spec !== 'file://' + pluginPathMjs &&
+        spec !== 'file://' + pluginPathJs
+      );
+      if (config.plugin.length !== before) {
+        backupFile(opencodeConfigPath, skipBackup);
+        atomicWrite(opencodeConfigPath, JSON.stringify(config, null, 2));
+        removedPlugin = true;
+      }
+    }
   }
 
-  backupFile(opencodeConfigPath, skipBackup);
-  const config = JSON.parse(fs.readFileSync(opencodeConfigPath, 'utf8'));
-
-  if (!config.plugin || !config.plugin.includes(PLUGIN_NAME)) {
-    return { removed: false, reason: 'plugin-not-found' };
-  }
-
-  config.plugin = config.plugin.filter(p => p !== PLUGIN_NAME);
-  atomicWrite(opencodeConfigPath, JSON.stringify(config, null, 2));
-
-  // Remove plugin file and its repair engine dependency
-  const pluginPath = path.join(projectDir, '.opencode', 'plugin', 'tool-repair-plugin.js');
-  const repairDir = path.join(projectDir, '.opencode', 'plugin', 'repair');
-  if (fs.existsSync(pluginPath)) {
-    fs.unlinkSync(pluginPath);
+  for (const p of [pluginPathMjs, pluginPathJs]) {
+    if (fs.existsSync(p)) {
+      fs.unlinkSync(p);
+      removedPlugin = true;
+    }
   }
   if (fs.existsSync(repairDir)) {
     fs.rmSync(repairDir, { recursive: true, force: true });
+    removedPlugin = true;
   }
 
-  return { removed: true };
+  return removedPlugin
+    ? { removed: true }
+    : { removed: false, reason: 'plugin-not-found' };
 }
 
 function uninstallRules(agentsMdPath, claudeMdPath, skipBackup) {
@@ -78,7 +97,7 @@ async function uninstall(options = {}) {
   const result = {};
 
   try {
-    const pluginResult = uninstallPlugin(opencodeConfigPath, projectDir, skipBackup);
+    const pluginResult = uninstallPlugin(opencodeConfigPath, projectDir, skipBackup, isGlobal);
     result.pluginRemoved = pluginResult.removed;
     if (pluginResult.reason) result.pluginReason = pluginResult.reason;
   } catch (err) {
