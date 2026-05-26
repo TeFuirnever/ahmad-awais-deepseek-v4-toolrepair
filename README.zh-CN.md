@@ -20,6 +20,28 @@
 > "一个修复层。开源模型在我们的工具调用评估中现在能击败 Opus 4.7。"
 > — [Ahmad Awais (@MrAhmadAwais)](https://x.com/MrAhmadAwais/status/2050956678502420612)
 
+<details>
+<summary>X/Twitter 链接打不开？（需翻墙）点击展开完整引用与上下文</summary>
+
+**出处：** Ahmad Awais (@MrAhmadAwais) 在 X 上的公开推文，发布于 DeepSeek V4 Pro 发布前后。
+
+**英文原文（逐字）：**
+
+> "One repair layer. Open models now beat Opus 4.7 in our tool-calling evals."
+
+**中文翻译：**
+
+> "一个修复层。开源模型在我们的工具调用评估中现在能击败 Opus 4.7。"
+
+**上下文（综合自该推文及关联讨论的转述，非逐字引用）：**
+- 评估环境：[CommandCodeAI](https://commandcode.ai) 的内部工具调用基准
+- 对比模型：DeepSeek V4 Pro vs Claude Opus 4.7
+- 公开比分：DeepSeek V4 Pro 6/10 取胜
+- 唯一变量：在模型输出上叠加一个薄薄的输入修复层（即本库复现的方法）
+- 原推链接：`https://x.com/MrAhmadAwais/status/2050956678502420612`
+
+</details>
+
 ### Before / After（影子基准）
 
 基于 33 条来自 DeepSeek V4 / Qwen / GLM 真实失败模式的录制语料。Oracle = schema 验证。真实 API 回放推迟至 v1.1.0；方法学与原始计数提交在 [`bench-results.json`](bench-results.json)。

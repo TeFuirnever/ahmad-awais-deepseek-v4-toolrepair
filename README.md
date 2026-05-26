@@ -48,6 +48,24 @@ Based on [Ahmad Awais](https://x.com/MrAhmadAwais)'s research: a tool-input repa
 > "One repair layer. Open models now beat Opus 4.7 in our tool-calling evals."
 > — [Ahmad Awais (@MrAhmadAwais)](https://x.com/MrAhmadAwais/status/2050956678502420612)
 
+<details>
+<summary>If the X/Twitter link is unreachable (region-blocked), click for the full quote and context</summary>
+
+**Source:** Ahmad Awais (@MrAhmadAwais), public post on X, dated around the DeepSeek V4 Pro release.
+
+**Quote (verbatim):**
+
+> "One repair layer. Open models now beat Opus 4.7 in our tool-calling evals."
+
+**Context (paraphrased from the surrounding post and prior threads):**
+- Eval setting: internal tool-calling benchmark at [CommandCodeAI](https://commandcode.ai)
+- Models compared: DeepSeek V4 Pro vs. Claude Opus 4.7
+- Reported score: DeepSeek V4 Pro wins 6 out of 10 head-to-heads
+- Variable changed: a thin input-repair layer on top of the model's output (this library reproduces the same approach)
+- Original URL: `https://x.com/MrAhmadAwais/status/2050956678502420612`
+
+</details>
+
 ### Before / After (shadow benchmark)
 
 Recorded-corpus benchmark over 33 real failure patterns from DeepSeek V4 / Qwen / GLM tool calls. Oracle = schema validation. Live-API replay is deferred to v1.1.0; methodology and raw counts are committed in [`bench-results.json`](bench-results.json).
