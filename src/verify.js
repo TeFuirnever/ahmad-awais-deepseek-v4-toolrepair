@@ -3,7 +3,35 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 const crypto = require('crypto');
+const { pathToFileURL } = require('url');
 const { RULES_MARKER_START, RULES_MARKER_END, PLUGIN_NAME, ALLOWED_PLATFORMS } = require('./constants');
+
+// End-to-end runtime check: load the installed .mjs plugin and confirm
+// `tool.execute.before` actually mutates `output.args`. Catches the class
+// of regression that silently broke v1.0.0/v1.0.1 (wrong hook signature,
+// CJS-loaded-as-ESM, missing tool schemas) — all of which let unit tests
+// pass while the plugin was dead code in production.
+async function runPluginSmokeCheck(pluginPath) {
+  try {
+    const mod = await import(pathToFileURL(pluginPath).href);
+    if (typeof mod.default !== 'function') {
+      return { ok: false, reason: 'plugin default export is not a function' };
+    }
+    const hooks = await mod.default({ project: {}, client: {}, $: undefined, directory: os.tmpdir() });
+    const before = hooks && hooks['tool.execute.before'];
+    if (typeof before !== 'function') {
+      return { ok: false, reason: 'tool.execute.before hook missing' };
+    }
+    const output = { args: { filePath: '/x', offset: null, limit: null } };
+    await before({ tool: 'read', sessionID: 'verify', callID: 'verify' }, output);
+    if (output.args.offset !== undefined || output.args.limit !== undefined) {
+      return { ok: false, reason: 'hook did not strip null offset/limit on `read`' };
+    }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, reason: e.message };
+  }
+}
 
 function sha256(filePath) {
   if (!fs.existsSync(filePath)) return null;
@@ -60,7 +88,7 @@ function verifyClaudeCode(isGlobal, projectDir) {
   return checks;
 }
 
-function verifyOpenCode(isGlobal, projectDir) {
+async function verifyOpenCode(isGlobal, projectDir) {
   const home = os.homedir();
   const opencodeConfigPath = isGlobal
     ? path.join(home, '.config', 'opencode', 'opencode.json')
@@ -109,6 +137,16 @@ function verifyOpenCode(isGlobal, projectDir) {
     sha256: sha256(pluginPath),
   });
 
+  // Runtime smoke check — only when the plugin file exists
+  if (fs.existsSync(pluginPath)) {
+    const smoke = await runPluginSmokeCheck(pluginPath);
+    checks.push({
+      item: 'plugin-runtime',
+      status: smoke.ok ? 'OK' : 'FAILED',
+      ...(smoke.reason ? { reason: smoke.reason } : {}),
+    });
+  }
+
   // Check rules (AGENTS.md or CLAUDE.md fallback)
   const rulesPaths = [agentsMdPath, claudeMdPath].filter(p => fs.existsSync(p));
   let rulesFound = false;
@@ -149,13 +187,14 @@ async function verify(options = {}) {
     console.error(`\ntoolrepair: ${platform} verification`);
     const checks = platform === 'claude-code'
       ? verifyClaudeCode(isGlobal, projectDir)
-      : verifyOpenCode(isGlobal, projectDir);
+      : await verifyOpenCode(isGlobal, projectDir);
 
     for (const check of checks) {
       const icon = check.status === 'OK' ? '✓' : '✗';
       const sha = check.sha256 ? ` (sha256: ${check.sha256.substring(0, 16)}...)` : '';
-      console.error(`  ${icon} ${check.item}: ${check.status}${sha}`);
-      if (check.status !== 'OK' && check.status !== 'NOT_FOUND') {
+      const reason = check.reason ? ` — ${check.reason}` : '';
+      console.error(`  ${icon} ${check.item}: ${check.status}${sha}${reason}`);
+      if (check.status !== 'OK' && check.status !== 'NOT_FOUND' && check.status !== 'AUTO_DISCOVERY') {
         allOk = false;
       }
     }
@@ -169,4 +208,4 @@ async function verify(options = {}) {
   }
 }
 
-module.exports = { verify };
+module.exports = { verify, runPluginSmokeCheck };
