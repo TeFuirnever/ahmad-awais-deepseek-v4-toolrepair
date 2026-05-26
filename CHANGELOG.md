@@ -1,5 +1,43 @@
 # Changelog
 
+## Unreleased
+
+Post-v1.0.0 infrastructure pass. No repair behavior changes — additive only.
+
+### Added
+
+- **TypeScript declarations** (`src/index.d.ts`) — hand-written types mirroring the CJS surface. No build step required.
+- **ESM/CJS dual export** — `src/index.mjs` wrapper via `createRequire`; `exports` map in `package.json` with `import`/`require`/`types`/`default` conditionals. Unblocks Vite, Next 14+, Bun, Deno consumers.
+- **Schema registry expansion 7 → 12 tools** — added `Bash`, `Glob`, `Grep`, `TodoWrite`, `WebFetch` (Claude Code top-5 by call frequency).
+- **Shadow benchmark harness** (`scripts/shadow-bench.js`) — 33-entry recorded corpus tagged by model (DeepSeek V4 / Qwen / GLM / generic) and failure pattern. Spec-oracle methodology: schema-validation as the accept oracle, unrepaired baseline pass vs. full repair pass. Writes `bench-results.json` with timestamps, raw counts, per-pattern + per-model breakdowns.
+- **`SECURITY.md`** — scoped threat model (malformed-JSON DoS, autolink bypass, path traversal, prompt-injection-via-retry, telemetry leakage) + 30-day disclosure timeline.
+- **`.github/ISSUE_TEMPLATE/`** (bug + feature) + **`pull_request_template.md`** with semver checklist and reviewer gates.
+- **README per-fix verification** — every repair documents Problem → Principle → Test with a copy-paste Node REPL one-liner.
+- **README "When repair fails" debug guide** — 5-step recipe (logging, telemetry, schema check, bench reproduce, false-negative patterns).
+- **README semver policy** — new fix = minor, changed output = major, surface widened = minor, narrowed/removed = major.
+- **README prior-art section** — comparison vs. `json-repair`, `zod-validation-error`, `partial-json`, `ajv` / `zod`.
+- **README hero quote** — Ahmad Awais quote, linked (no screenshot — ToS-safe).
+- **Live measured Before / After** — recorded-corpus benchmark: baseline 21.2% → repaired 97.0% (+75.8 pts).
+
+### Changed
+
+- Quality gates: 109 → **127 tests**, supported tools 7 → **12**, README/zh-CN refreshed.
+
+### Quality gates
+
+- 127/127 tests pass (Node 18 / 20 / 22 CI matrix all green)
+- 12/12 benchmark scenarios — 100% success rate
+- 32/33 shadow-bench corpus accepted (97.0%) vs. 7/33 baseline (21.2%)
+- 100% line + function coverage on the repair engine
+- 0 runtime dependencies
+
+### Deferred (with triggers)
+
+- `npm publish --provenance` + Codecov / bundle-size badges — blocked on package-name trademark resolution.
+- Live-API benchmark replay (DeepSeek / Qwen / GLM credits) — deferred to v1.1.0.
+
+---
+
 ## v1.0.0 (2026-05-26, retagged)
 
 Tag `v1.0.0` re-pointed to current `main` HEAD. This is the stable, production-ready release of the validate-then-repair tool-call recovery engine based on [Ahmad Awais's research](https://x.com/MrAhmadAwais/status/2050956678502420612).

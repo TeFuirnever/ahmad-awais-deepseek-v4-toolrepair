@@ -40,16 +40,31 @@ Validate-then-repair engine stable release. Tag re-pointed to current `main`.
 - [x] GitHub Release v1.0.0
 - [x] Branch protection (CI required + PR review)
 
-## v1.1.0 (Planned)
+## v1.1.0 (In progress — infrastructure pass shipped, awaiting npm)
 
 Schema and reach expansion — driven by real-traffic shadow validation.
 
-- [ ] Expand `toolSchemas` to cover 20-30 common tools (Bash, Glob, Grep, TodoWrite, WebFetch, etc.)
-- [ ] Real DeepSeek V4 / Qwen / GLM shadow validation (N=500+ live tool calls)
+### Shipped (post-v1.0.0 retag)
+
+- [x] TypeScript declarations (`src/index.d.ts`) — hand-written, zero-build
+- [x] ESM/CJS dual export (`exports` map + `src/index.mjs` via `createRequire`)
+- [x] Expanded `toolSchemas` 7 → 12 (added `Bash`, `Glob`, `Grep`, `TodoWrite`, `WebFetch`)
+- [x] Shadow benchmark harness (`scripts/shadow-bench.js`) with 33-entry recorded corpus, spec-oracle methodology, committed `bench-results.json` artifact (baseline 21.2% → repaired 97.0%, +75.8 pts)
+- [x] `SECURITY.md` with scoped threat model + 30-day disclosure timeline
+- [x] Issue + PR templates (`.github/ISSUE_TEMPLATE/`, `pull_request_template.md`) with semver checklist
+- [x] README hero quote, prior-art positioning, Problem → Principle → Test per fix, "When repair fails" debug guide, semver policy
+- [x] 127/127 tests pass; CI matrix (Node 18/20/22) all green
+
+### Pending
+
+- [ ] Real DeepSeek V4 / Qwen / GLM shadow validation (N=500+ live tool calls) — needs API budget
+- [ ] Negative-control corpus in shadow bench (inputs that *should* be rejected)
 - [ ] Codecov badge for branch coverage
+- [ ] Bundle-size badge (size-limit or bundlephobia)
 - [ ] `--force` flag for reinstall/upgrade
 - [ ] Node version runtime check
-- [ ] npm publish
+- [ ] npm publish with `--provenance` — blocked on package-name trademark resolution
+- [ ] GitHub Private Vulnerability Reporting enabled (replace mailto in SECURITY.md)
 
 ## v2.0.0 (Future)
 
