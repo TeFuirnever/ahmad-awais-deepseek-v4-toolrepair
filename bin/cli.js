@@ -1,6 +1,13 @@
 #!/usr/bin/env node
 // Zero-dependency CLI for ahmad-awais-deepseek-v4-toolrepair
 
+const MIN_NODE_MAJOR = 18;
+const nodeMajor = parseInt(process.versions.node.split('.')[0], 10);
+if (nodeMajor < MIN_NODE_MAJOR) {
+  console.error(`toolrepair: requires Node.js >=${MIN_NODE_MAJOR}, found v${process.versions.node}. Upgrade Node.js: https://nodejs.org`);
+  process.exit(1);
+}
+
 const pkg = require('../package.json');
 
 const args = process.argv.slice(2);
@@ -53,6 +60,7 @@ INSTALL OPTIONS:
   --project <dir>  Project directory (default: current)
   --rules-only     Only install instruction rules
   --plugin-only    Only install hook/plugin
+  --force, -f      Reinstall even if already present (overwrites)
   --dry-run        Show what would be done without changes
   --skip-backup    Skip creating backups (not recommended)
 
@@ -83,15 +91,27 @@ switch (command) {
     process.exit(0);
 
   case 'install': {
-    const { install } = require('../src/install');
-    install({
-      platform: flags.platform,
-      project: flags.project,
-      rulesOnly: flags['rules-only'] || flags.r,
-      pluginOnly: flags['plugin-only'] || flags.p,
-      skipBackup: flags['skip-backup'],
-      dryRun: flags['dry-run'],
-    }).catch(err => {
+    const run = async () => {
+      if (flags.force || flags.f) {
+        const { uninstall } = require('../src/uninstall');
+        await uninstall({
+          platform: flags.platform,
+          project: flags.project,
+          skipBackup: true,
+          dryRun: flags['dry-run'],
+        }).catch(() => {});
+      }
+      const { install } = require('../src/install');
+      return install({
+        platform: flags.platform,
+        project: flags.project,
+        rulesOnly: flags['rules-only'] || flags.r,
+        pluginOnly: flags['plugin-only'] || flags.p,
+        skipBackup: flags['skip-backup'],
+        dryRun: flags['dry-run'],
+      });
+    };
+    run().catch(err => {
       console.error(`toolrepair: install failed: ${err.message}`);
       process.exit(1);
     });
