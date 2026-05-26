@@ -58,13 +58,14 @@ Schema and reach expansion — driven by real-traffic shadow validation.
 ### Pending
 
 - [ ] Real DeepSeek V4 / Qwen / GLM shadow validation (N=500+ live tool calls) — needs API budget
+  - [x] External-corpus replay harness (`scripts/shadow-bench-live.js`) — can replay BFCL/ToolBench when contributors provide a source file
 - [ ] Negative-control corpus in shadow bench (inputs that *should* be rejected)
-- [ ] Codecov badge for branch coverage
-- [ ] Bundle-size badge (size-limit or bundlephobia)
+- [x] Codecov badge for branch coverage
+- [x] Bundle-size badge (size-limit or bundlephobia)
 - [ ] `--force` flag for reinstall/upgrade
 - [ ] Node version runtime check
 - [ ] npm publish with `--provenance` — blocked on package-name trademark resolution
-- [ ] GitHub Private Vulnerability Reporting enabled (replace mailto in SECURITY.md)
+- [x] GitHub Private Vulnerability Reporting enabled (SECURITY.md references PVR; enabling the GitHub setting is a maintainer action)
 
 ## v2.0.0 (Future)
 
