@@ -42,6 +42,8 @@
   ],
   "scripts": {
     "test": "node --test test/**/*.test.js",
+    "test:bun": "bun test",
+    "test:deno": "deno test --allow-read --allow-write --allow-env --allow-net --allow-run --unstable-sloppy-imports --unstable-detect-cjs test/**/*.test.js",
     "verify": "node bin/cli.js verify"
   },
   "engines": {
