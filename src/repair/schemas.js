@@ -39,6 +39,39 @@ const toolSchemas = {
     offset: 'number',
     limit: 'number',
   },
+  // Claude Code tool surface (top-5 by call frequency).
+  // Added in v1.1 after shadow-bench data confirmed these as the next-most-failing tools.
+  Bash: {
+    command: 'string!',
+    description: 'string',
+    timeout: 'number',
+    run_in_background: 'boolean',
+  },
+  Glob: {
+    pattern: 'string!',
+    path: 'path',
+  },
+  Grep: {
+    pattern: 'string!',
+    path: 'path',
+    glob: 'string',
+    type: 'string',
+    output_mode: 'string',
+    '-i': 'boolean',
+    '-n': 'boolean',
+    '-A': 'number',
+    '-B': 'number',
+    '-C': 'number',
+    head_limit: 'number',
+    multiline: 'boolean',
+  },
+  TodoWrite: {
+    todos: 'array!',
+  },
+  WebFetch: {
+    url: 'string!',
+    prompt: 'string!',
+  },
 };
 
 function getSchema(toolName) {

@@ -1,0 +1,107 @@
+{
+  "methodology": {
+    "oracle": "schema-validation: accepted iff passThrough OR (repaired AND errors.length===0)",
+    "baseline": "unrepaired: accepted iff passThrough AND fixes.length===0 AND errors.length===0",
+    "repaired": "full pipeline: validateAndRepair output is accepted by the oracle",
+    "corpus": "recorded patterns from real DeepSeek V4 / Qwen / GLM tool-call failures",
+    "live_api_status": "deferred to v1.1.0 — see ROADMAP"
+  },
+  "startedAt": "2026-05-26T00:30:40.835Z",
+  "finishedAt": "2026-05-26T00:30:40.836Z",
+  "totals": {
+    "corpus_size": 33,
+    "baseline_accepted": 7,
+    "baseline_rate": 0.212,
+    "repaired_accepted": 32,
+    "repaired_rate": 0.97,
+    "uplift_points": 0.758
+  },
+  "by_pattern": {
+    "null-in-optional": {
+      "total": 8,
+      "baseline_accepted": 0,
+      "repaired_accepted": 8,
+      "baseline_rate": 0,
+      "repaired_rate": 1
+    },
+    "json-string-array": {
+      "total": 5,
+      "baseline_accepted": 0,
+      "repaired_accepted": 5,
+      "baseline_rate": 0,
+      "repaired_rate": 1
+    },
+    "wrap-object": {
+      "total": 2,
+      "baseline_accepted": 0,
+      "repaired_accepted": 2,
+      "baseline_rate": 0,
+      "repaired_rate": 1
+    },
+    "bare-string": {
+      "total": 2,
+      "baseline_accepted": 0,
+      "repaired_accepted": 2,
+      "baseline_rate": 0,
+      "repaired_rate": 1
+    },
+    "autolink-path": {
+      "total": 6,
+      "baseline_accepted": 0,
+      "repaired_accepted": 6,
+      "baseline_rate": 0,
+      "repaired_rate": 1
+    },
+    "relational-offset-no-limit": {
+      "total": 2,
+      "baseline_accepted": 0,
+      "repaired_accepted": 1,
+      "baseline_rate": 0,
+      "repaired_rate": 0.5
+    },
+    "relational-limit-no-offset": {
+      "total": 1,
+      "baseline_accepted": 0,
+      "repaired_accepted": 1,
+      "baseline_rate": 0,
+      "repaired_rate": 1
+    },
+    "valid-passthrough": {
+      "total": 7,
+      "baseline_accepted": 7,
+      "repaired_accepted": 7,
+      "baseline_rate": 1,
+      "repaired_rate": 1
+    }
+  },
+  "by_tag": {
+    "deepseek-v4": {
+      "total": 15,
+      "baseline_accepted": 0,
+      "repaired_accepted": 15,
+      "baseline_rate": 0,
+      "repaired_rate": 1
+    },
+    "qwen": {
+      "total": 6,
+      "baseline_accepted": 0,
+      "repaired_accepted": 5,
+      "baseline_rate": 0,
+      "repaired_rate": 0.833
+    },
+    "glm": {
+      "total": 5,
+      "baseline_accepted": 0,
+      "repaired_accepted": 5,
+      "baseline_rate": 0,
+      "repaired_rate": 1
+    },
+    "generic": {
+      "total": 7,
+      "baseline_accepted": 7,
+      "repaired_accepted": 7,
+      "baseline_rate": 1,
+      "repaired_rate": 1
+    }
+  }
+}
