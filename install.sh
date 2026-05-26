@@ -14,7 +14,7 @@
 
 set -e
 
-REPO_URL="https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair.git"
+REPO_URL="${TOOLREPAIR_REPO_URL:-https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair.git}"
 INSTALL_DIR="${TOOLREPAIR_HOME:-$HOME/.toolrepair}"
 BIN_DIR="${TOOLREPAIR_BIN_DIR:-$HOME/.local/bin}"
 LINK_NAME="toolrepair"

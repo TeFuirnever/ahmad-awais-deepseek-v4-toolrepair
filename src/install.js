@@ -17,11 +17,10 @@ const OPENCODE_PATHS = {
 };
 
 function detectPlatforms() {
-  const platforms = [];
-  if (fs.existsSync(CLAUDE_CODE_PATHS.settings)) platforms.push('claude-code');
-  // OpenCode config dir might not exist on fresh install
-  platforms.push('opencode'); // Always available as target
-  return platforms;
+  // Both platforms are always available as install targets — installers create
+  // their config directories on demand. Detection used to gate on existing
+  // settings.json, but that wrongly excluded fresh-user installs.
+  return ['claude-code', 'opencode'];
 }
 
 function detectProjectPlatforms(projectDir) {

@@ -63,3 +63,24 @@ jobs:
             });
             console.log('total public entrypoints gzip: ' + total + ' bytes (' + (total/1024).toFixed(2) + ' KB)');
           "
+
+  install-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install.sh end-to-end (isolated HOME)
+        run: |
+          set -e
+          export HOME="$(mktemp -d)"
+          export TOOLREPAIR_REPO_URL="file://$GITHUB_WORKSPACE"
+          export TOOLREPAIR_HOME="$HOME/.toolrepair"
+          export TOOLREPAIR_BIN_DIR="$HOME/.local/bin"
+          export PATH="$TOOLREPAIR_BIN_DIR:$PATH"
+          sh "$GITHUB_WORKSPACE/install.sh"
+          toolrepair verify
+          toolrepair uninstall
+          test ! -f "$HOME/.claude/hooks/tool-repair-detector.js" || (echo "uninstall leaked hook"; exit 1)
+          echo "install -> verify -> uninstall: clean"

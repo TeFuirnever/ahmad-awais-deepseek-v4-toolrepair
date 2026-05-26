@@ -1,5 +1,6 @@
 // Shared filesystem utilities for ahmad-awais-deepseek-v4-toolrepair
 const fs = require('fs');
+const path = require('path');
 
 function backupFile(filePath, skipBackup) {
   if (skipBackup || !fs.existsSync(filePath)) return;
@@ -10,6 +11,7 @@ function backupFile(filePath, skipBackup) {
 }
 
 function atomicWrite(filePath, content) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
   const tmpPath = `${filePath}.tmp.${process.pid}`;
   fs.writeFileSync(tmpPath, content, 'utf8');
   if (filePath.endsWith('.json')) {
