@@ -5,9 +5,10 @@
 ```bash
 git clone https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair.git
 cd ahmad-awais-deepseek-v4-toolrepair
-npm test                       # 127 tests, zero dependencies
+npm test                       # 127+ tests, zero dependencies
 node test/benchmark.js         # 12 real-world scenarios @ 100%
 node scripts/shadow-bench.js   # 33-entry recorded corpus, writes bench-results.json
+node scripts/shadow-bench-live.js --source path/to/file.jsonl  # external corpus replay (see below)
 ```
 
 ## Architecture
@@ -37,6 +38,7 @@ Tool call → tryParse → valid? → pass through (untouched)
 | `src/repair/autolink-fix.js` | Markdown autolink detection (schema-scoped) |
 | `src/repair/relational-fix.js` | offset/limit invariant handling |
 | `scripts/shadow-bench.js` | Recorded-corpus benchmark harness (writes `bench-results.json`) |
+| `scripts/shadow-bench-live.js` | External-corpus replay harness — accepts `--source <path>` pointing to a BFCL or ToolBench JSONL file; writes `bench-results-live.json` (gitignored) |
 | `src/platforms/claude-code/` | Claude Code installer + PostToolUseFailure hook |
 | `src/platforms/opencode/` | OpenCode installer + tool.execute.before plugin |
 | `bin/cli.js` | CLI entry point (install/uninstall/verify) |
