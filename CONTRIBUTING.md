@@ -33,7 +33,7 @@ Tool call → tryParse → valid? → pass through (untouched)
 | `src/index.mjs` | ESM wrapper via `createRequire` (mirrors CJS surface, single source of truth) |
 | `src/index.d.ts` | Hand-written TypeScript declarations (no build step) |
 | `src/repair/repair-orchestrator.js` | validate-then-repair orchestrator |
-| `src/repair/schemas.js` | Tool schema registry (19 tools, `!` = required, `path` = file-path with security checks) |
+| `src/repair/schemas.js` | Tool schema registry (12 tools, `!` = required, `path` = file-path with security checks) |
 | `src/repair/shape-fixes.js` | 4 core shape fixes (strict ordering) |
 | `src/repair/autolink-fix.js` | Markdown autolink detection (schema-scoped) |
 | `src/repair/relational-fix.js` | offset/limit invariant handling |
