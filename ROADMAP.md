@@ -30,7 +30,7 @@ Validate-then-repair engine stable release. Tag re-pointed to current `main`.
 
 ### Platform integration
 
-- [x] Multi-platform support (Claude Code + OpenCode + Cursor + Gemini CLI)
+- [x] Triple-platform support (Claude Code + OpenCode + Cursor)
 - [x] CLI (install, uninstall, verify, --version)
 - [x] CI/CD (GitHub Actions, matrix Node 18/20/22)
 - [x] 8 badges in README
@@ -75,7 +75,7 @@ Triggered by v1.1.0 shadow data showing the string DSL is insufficient.
 - [ ] Recursive `validateField` for nested schemas
 - [ ] WASM-based repair engine for in-browser use
 - [x] Cursor platform support (`.cursorrules` passive prevention)
-- [x] Gemini CLI platform support (`GEMINI.md` passive prevention)
+- [ ] Gemini CLI platform support
 - [ ] Homebrew formula (`brew install`)
 - [x] `install.sh` + `install.ps1` for non-npx users
 

@@ -11,7 +11,7 @@ async function uninstall(options = {}) {
   if (options.platform) {
     platforms = [options.platform];
   } else {
-    platforms = ['claude-code', 'opencode', 'cursor', 'gemini'];
+    platforms = ['claude-code', 'opencode', 'cursor'];
   }
 
   console.error(`toolrepair: uninstalling from platforms: ${platforms.join(', ')}`);
