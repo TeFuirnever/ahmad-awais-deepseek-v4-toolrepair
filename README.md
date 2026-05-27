@@ -47,7 +47,7 @@ Windows users: replace the first line with `powershell -ExecutionPolicy Bypass -
 
 [中文文档](README.zh-CN.md) | [English](README.md)
 
-Auto-repair DeepSeek V4 tool-calling quirks in Claude Code CLI and OpenCode.
+Auto-repair DeepSeek V4 tool-calling quirks in Claude Code CLI, OpenCode, and Cursor.
 
 Based on [Ahmad Awais](https://x.com/MrAhmadAwais)'s research: a tool-input repair layer made DeepSeek V4 Pro beat Opus 4.7 **6/10 times** in internal evals.
 
@@ -159,15 +159,17 @@ These are contract-level issues, not model capability issues.
 
 Two-layer defense:
 
-| Layer | Claude Code | OpenCode |
-|-------|-------------|----------|
-| **Active repair** | ❌ (hook protocol limitation) | ✅ `tool.execute.before` plugin |
-| **Passive prevention** | ✅ CLAUDE.md rules | ✅ AGENTS.md rules |
-| **Failure guidance** | ✅ PostToolUseFailure hook | ✅ `tool.execute.after` plugin |
+| Layer | Claude Code | OpenCode | Cursor |
+|-------|-------------|----------|--------|
+| **Active repair** | ❌ (hook protocol limitation) | ✅ `tool.execute.before` plugin | ❌ |
+| **Passive prevention** | ✅ CLAUDE.md rules | ✅ AGENTS.md rules | ✅ `.cursorrules` |
+| **Failure guidance** | ✅ PostToolUseFailure hook | ✅ `tool.execute.after` plugin | ❌ |
 
 **OpenCode gets real input repair** — the plugin intercepts tool calls before execution and applies the validate-then-repair strategy.
 
 **Claude Code gets best-effort** — passive instructions + failure detection with retry guidance.
+
+**Cursor gets passive prevention** — rules in `.cursorrules` guide the model to avoid format errors.
 
 ## Install
 
@@ -198,6 +200,7 @@ npx --package=github:TeFuirnever/ahmad-awais-deepseek-v4-toolrepair toolrepair i
 # Specific platform
 npx --package=github:TeFuirnever/ahmad-awais-deepseek-v4-toolrepair toolrepair install --platform opencode
 npx --package=github:TeFuirnever/ahmad-awais-deepseek-v4-toolrepair toolrepair install --platform claude-code
+npx --package=github:TeFuirnever/ahmad-awais-deepseek-v4-toolrepair toolrepair install --platform cursor
 
 # Rules only / dry run
 npx --package=github:TeFuirnever/ahmad-awais-deepseek-v4-toolrepair toolrepair install --rules-only
@@ -222,6 +225,7 @@ After installing the CLI via any of the 3 options above, you can target one plat
 ```bash
 toolrepair install --platform claude-code   # only Claude Code
 toolrepair install --platform opencode      # only OpenCode
+toolrepair install --platform cursor        # only Cursor
 toolrepair install --rules-only             # only CLAUDE.md / AGENTS.md rules
 toolrepair install --plugin-only            # only hook / plugin (no rules)
 toolrepair install --force                  # clean reinstall (uninstall then install)
@@ -368,7 +372,7 @@ Rationale: consumers depend on the repaired *output*, not just on "did it pass."
 | Line coverage | 100% ✅ |
 | Function coverage | 100% ✅ |
 | Runtime dependencies | 0 |
-| Supported tools | 12 (`read_file`, `write_to_file`, `edit_file`, `search_content`, `execute_command`, `list_files`, `Read`, `Bash`, `Glob`, `Grep`, `TodoWrite`, `WebFetch`) |
+| Supported tools | 19 (`read_file`, `write_to_file`, `edit_file`, `search_content`, `execute_command`, `list_files`, `Read`, `Bash`, `Glob`, `Grep`, `TodoWrite`, `WebFetch`, `read`, `glob`, `grep`, `edit`, `write`, `todowrite`, `webfetch`) |
 
 ## Contributing
 

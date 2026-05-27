@@ -30,7 +30,7 @@ Validate-then-repair engine stable release. Tag re-pointed to current `main`.
 
 ### Platform integration
 
-- [x] Dual-platform support (Claude Code + OpenCode)
+- [x] Triple-platform support (Claude Code + OpenCode + Cursor)
 - [x] CLI (install, uninstall, verify, --version)
 - [x] CI/CD (GitHub Actions, matrix Node 18/20/22)
 - [x] 8 badges in README
@@ -48,7 +48,7 @@ Schema and reach expansion — driven by real-traffic shadow validation.
 
 - [x] TypeScript declarations (`src/index.d.ts`) — hand-written, zero-build
 - [x] ESM/CJS dual export (`exports` map + `src/index.mjs` via `createRequire`)
-- [x] Expanded `toolSchemas` 7 → 12 (added `Bash`, `Glob`, `Grep`, `TodoWrite`, `WebFetch`)
+- [x] Expanded `toolSchemas` 7 → 12 → 19 (added `Bash`, `Glob`, `Grep`, `TodoWrite`, `WebFetch`, `read`, `glob`, `grep`, `edit`, `write`, `todowrite`, `webfetch`)
 - [x] Shadow benchmark harness (`scripts/shadow-bench.js`) with 33-entry recorded corpus, spec-oracle methodology, committed `bench-results.json` artifact (baseline 21.2% → repaired 97.0%, +75.8 pts)
 - [x] `SECURITY.md` with scoped threat model + 30-day disclosure timeline
 - [x] Issue + PR templates (`.github/ISSUE_TEMPLATE/`, `pull_request_template.md`) with semver checklist
@@ -74,7 +74,8 @@ Triggered by v1.1.0 shadow data showing the string DSL is insufficient.
 - [ ] Structured schema DSL (enum, range, nested objects, `array<string>`)
 - [ ] Recursive `validateField` for nested schemas
 - [ ] WASM-based repair engine for in-browser use
-- [ ] Cursor + Gemini CLI platform support
+- [x] Cursor platform support (`.cursorrules` passive prevention)
+- [ ] Gemini CLI platform support
 - [ ] Homebrew formula (`brew install`)
 - [x] `install.sh` + `install.ps1` for non-npx users
 

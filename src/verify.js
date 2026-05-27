@@ -165,6 +165,25 @@ async function verifyOpenCode(isGlobal, projectDir) {
   return checks;
 }
 
+function verifyCursor(isGlobal, projectDir) {
+  const home = os.homedir();
+  const cursorRulesPath = isGlobal
+    ? path.join(home, '.cursorrules')
+    : path.join(projectDir, '.cursorrules');
+
+  const checks = [];
+
+  if (fs.existsSync(cursorRulesPath)) {
+    const content = fs.readFileSync(cursorRulesPath, 'utf8');
+    const hasRules = content.includes(RULES_MARKER_START) && content.includes(RULES_MARKER_END);
+    checks.push({ item: 'cursorrules', status: hasRules ? 'OK' : 'MISSING' });
+  } else {
+    checks.push({ item: 'cursorrules', status: 'NOT_FOUND' });
+  }
+
+  return checks;
+}
+
 async function verify(options = {}) {
   const cwd = process.cwd();
   const projectDir = options.project ? path.resolve(options.project) : cwd;
@@ -179,7 +198,7 @@ async function verify(options = {}) {
     }
     platforms = [options.platform];
   } else {
-    platforms = ['claude-code', 'opencode'];
+    platforms = ['claude-code', 'opencode', 'cursor'];
   }
 
   let allOk = true;
@@ -187,7 +206,9 @@ async function verify(options = {}) {
     console.error(`\ntoolrepair: ${platform} verification`);
     const checks = platform === 'claude-code'
       ? verifyClaudeCode(isGlobal, projectDir)
-      : await verifyOpenCode(isGlobal, projectDir);
+      : platform === 'cursor'
+        ? verifyCursor(isGlobal, projectDir)
+        : await verifyOpenCode(isGlobal, projectDir);
 
     for (const check of checks) {
       const icon = check.status === 'OK' ? '✓' : '✗';
