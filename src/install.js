@@ -20,7 +20,7 @@ function detectPlatforms() {
   // Both platforms are always available as install targets — installers create
   // their config directories on demand. Detection used to gate on existing
   // settings.json, but that wrongly excluded fresh-user installs.
-  return ['claude-code', 'opencode', 'cursor'];
+  return ['claude-code', 'opencode', 'cursor', 'gemini'];
 }
 
 function detectProjectPlatforms(projectDir) {
@@ -29,6 +29,7 @@ function detectProjectPlatforms(projectDir) {
   if (fs.existsSync(path.join(projectDir, '.opencode'))) platforms.push('opencode');
   if (fs.existsSync(path.join(projectDir, 'opencode.json'))) platforms.push('opencode');
   if (fs.existsSync(path.join(projectDir, '.cursorrules')) || fs.existsSync(path.join(projectDir, '.cursor'))) platforms.push('cursor');
+  if (fs.existsSync(path.join(projectDir, '.gemini')) || fs.existsSync(path.join(projectDir, 'GEMINI.md'))) platforms.push('gemini');
   return platforms;
 }
 
@@ -45,7 +46,7 @@ async function install(options = {}) {
     platforms = isGlobal ? detectPlatforms() : detectProjectPlatforms(projectDir);
     if (platforms.length === 0) {
       // Try both — install will fail gracefully if config not found
-      platforms = ['claude-code', 'opencode', 'cursor'];
+      platforms = ['claude-code', 'opencode', 'cursor', 'gemini'];
     }
   }
 

@@ -44,7 +44,7 @@ function parseFlags(args) {
 function showHelp() {
   console.log(`
 ahmad-awais-deepseek-v4-toolrepair v${pkg.version}
-Auto-repair DeepSeek V4 tool-calling quirks for Claude Code, OpenCode, and Cursor.
+Auto-repair DeepSeek V4 tool-calling quirks for Claude Code, OpenCode, Cursor, and Gemini CLI.
 
 USAGE:
   npx ahmad-awais-deepseek-v4-toolrepair <command> [options]
@@ -56,7 +56,7 @@ COMMANDS:
   help        Show this help
 
 INSTALL OPTIONS:
-  --platform <p>   Target: claude-code, opencode, cursor (default: auto-detect)
+  --platform <p>   Target: claude-code, opencode, cursor, gemini (default: auto-detect)
   --project <dir>  Project directory (default: current)
   --rules-only     Only install instruction rules
   --plugin-only    Only install hook/plugin

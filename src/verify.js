@@ -184,6 +184,25 @@ function verifyCursor(isGlobal, projectDir) {
   return checks;
 }
 
+function verifyGemini(isGlobal, projectDir) {
+  const home = os.homedir();
+  const geminiMdPath = isGlobal
+    ? path.join(home, '.gemini', 'GEMINI.md')
+    : path.join(projectDir, 'GEMINI.md');
+
+  const checks = [];
+
+  if (fs.existsSync(geminiMdPath)) {
+    const content = fs.readFileSync(geminiMdPath, 'utf8');
+    const hasRules = content.includes(RULES_MARKER_START) && content.includes(RULES_MARKER_END);
+    checks.push({ item: 'gemini-md', status: hasRules ? 'OK' : 'MISSING' });
+  } else {
+    checks.push({ item: 'gemini-md', status: 'NOT_FOUND' });
+  }
+
+  return checks;
+}
+
 async function verify(options = {}) {
   const cwd = process.cwd();
   const projectDir = options.project ? path.resolve(options.project) : cwd;
@@ -198,7 +217,7 @@ async function verify(options = {}) {
     }
     platforms = [options.platform];
   } else {
-    platforms = ['claude-code', 'opencode', 'cursor'];
+    platforms = ['claude-code', 'opencode', 'cursor', 'gemini'];
   }
 
   let allOk = true;
@@ -208,7 +227,9 @@ async function verify(options = {}) {
       ? verifyClaudeCode(isGlobal, projectDir)
       : platform === 'cursor'
         ? verifyCursor(isGlobal, projectDir)
-        : await verifyOpenCode(isGlobal, projectDir);
+        : platform === 'gemini'
+          ? verifyGemini(isGlobal, projectDir)
+          : await verifyOpenCode(isGlobal, projectDir);
 
     for (const check of checks) {
       const icon = check.status === 'OK' ? '✓' : '✗';
