@@ -23,7 +23,7 @@ Validate-then-repair engine stable release. Tag re-pointed to current `main`.
 
 ### Quality gates
 
-- [x] 109 / 109 tests pass
+- [x] 161 / 161 tests pass
 - [x] 12 / 12 benchmark scenarios — 100% success rate
 - [x] 100% line + function coverage
 - [x] V8 branch coverage 97.73% (residual = sub-expression artifact)
@@ -53,7 +53,7 @@ Schema and reach expansion — driven by real-traffic shadow validation.
 - [x] `SECURITY.md` with scoped threat model + 30-day disclosure timeline
 - [x] Issue + PR templates (`.github/ISSUE_TEMPLATE/`, `pull_request_template.md`) with semver checklist
 - [x] README hero quote, prior-art positioning, Problem → Principle → Test per fix, "When repair fails" debug guide, semver policy
-- [x] 127/127 tests pass; CI matrix (Node 18/20/22) all green
+- [x] 161/161 tests pass; CI matrix (Node 18/20/22) all green
 
 ### Pending
 
@@ -62,8 +62,8 @@ Schema and reach expansion — driven by real-traffic shadow validation.
 - [x] Negative-control corpus in shadow bench (inputs that *should* be rejected) — 13 entries across 4 categories; bench exits non-zero on false-accept; uncovered + fixed 2 validator bugs (Step 1d passThrough leak, unsafe-path acceptance)
 - [x] Codecov badge for branch coverage
 - [x] Bundle-size badge (size-limit or bundlephobia)
-- [ ] `--force` flag for reinstall/upgrade
-- [ ] Node version runtime check
+- [x] `--force` flag for reinstall/upgrade
+- [x] Node version runtime check (MIN_NODE_MAJOR = 18 in bin/cli.js)
 - [ ] npm publish with `--provenance` — deferred. Local install paths (install.sh + `npx --package=github:...` + `git clone + npm link`) cover all install scenarios today; npm publish becomes a v1.2 distribution upgrade, not a v1.1 blocker. Package-name trademark resolution is no longer time-critical.
 - [x] GitHub Private Vulnerability Reporting enabled (SECURITY.md references PVR; enabling the GitHub setting is a maintainer action)
 
@@ -76,7 +76,7 @@ Triggered by v1.1.0 shadow data showing the string DSL is insufficient.
 - [ ] WASM-based repair engine for in-browser use
 - [ ] Cursor + Gemini CLI platform support
 - [ ] Homebrew formula (`brew install`)
-- [ ] `install.sh` + `install.ps1` for non-npx users
+- [x] `install.sh` + `install.ps1` for non-npx users
 
 ## Contribute
 

@@ -41,6 +41,8 @@ toolrepair: opencode verification
 toolrepair: all checks passed.
 ```
 
+Windows users: replace the first line with `powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.ps1 | iex"`.
+
 > **30 seconds to install. 6 repair types. Zero dependencies.**
 
 [中文文档](README.zh-CN.md) | [English](README.md)
@@ -173,11 +175,19 @@ Two-layer defense:
 
 ### Option 1 — One-shot installer (recommended)
 
+**macOS / Linux:**
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.sh | sh
 ```
 
-Clones to `~/.toolrepair`, symlinks `toolrepair` into `~/.local/bin/`, and runs `toolrepair install` against the auto-detected platform. Uninstall: `rm -rf ~/.toolrepair ~/.local/bin/toolrepair`.
+**Windows (PowerShell):**
+
+```powershell
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.ps1 | iex"
+```
+
+Clones to `~/.toolrepair`, creates a `toolrepair` command wrapper, and runs `toolrepair install` against the auto-detected platform. Uninstall: `rm -rf ~/.toolrepair ~/.local/bin/toolrepair` (macOS/Linux) or `Remove-Item -Recurse -Force ~/.toolrepair, ~/.local/bin/toolrepair.cmd` (Windows).
 
 ### Option 2 — Run directly via `npx` against GitHub
 
@@ -219,7 +229,7 @@ toolrepair install --force                  # clean reinstall (uninstall then in
 
 `install.sh` defaults to auto-detecting both platforms. To pick one from the start, use Option 2 (`npx --package=github:... toolrepair install --platform <p>`).
 
-> **LLM-first:** Copy this prompt to your AI agent: _"Install ahmad-awais-deepseek-v4-toolrepair from GitHub: `curl -fsSL https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.sh | sh`."_
+> **LLM-first:** Copy this prompt to your AI agent: _"Install ahmad-awais-deepseek-v4-toolrepair from GitHub."_ On macOS/Linux: `curl -fsSL https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.sh | sh`. On Windows: `powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.ps1 | iex"`.
 
 ## Verify
 
@@ -231,7 +241,12 @@ toolrepair verify
 
 ```bash
 toolrepair uninstall                              # if you used install.sh / npm link
-rm -rf ~/.toolrepair ~/.local/bin/toolrepair      # full removal for install.sh users
+rm -rf ~/.toolrepair ~/.local/bin/toolrepair      # full removal (macOS/Linux)
+```
+
+```powershell
+# Windows (PowerShell)
+Remove-Item -Recurse -Force "$env:USERPROFILE\.toolrepair", "$env:USERPROFILE\.local\bin\toolrepair.cmd"
 ```
 
 ## How It Works
@@ -347,7 +362,7 @@ Rationale: consumers depend on the repaired *output*, not just on "did it pass."
 
 | Metric | Value |
 |---|---|
-| Tests | 127 / 127 ✅ |
+| Tests | 161 / 161 ✅ |
 | Benchmark scenarios | 12 / 12 — 100% success ✅ |
 | Shadow bench (recorded corpus) | 32 / 33 — baseline 21.2% → repaired 97.0% ✅ |
 | Line coverage | 100% ✅ |

@@ -5,7 +5,7 @@
 ```bash
 git clone https://github.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair.git
 cd ahmad-awais-deepseek-v4-toolrepair
-npm test                       # 127+ tests, zero dependencies
+npm test                       # 161+ tests, zero dependencies
 node test/benchmark.js         # 12 real-world scenarios @ 100%
 node scripts/shadow-bench.js   # 33-entry recorded corpus, writes bench-results.json
 node scripts/shadow-bench-live.js --source path/to/file.jsonl  # external corpus replay (see below)
@@ -61,7 +61,7 @@ Tool call → tryParse → valid? → pass through (untouched)
 
 ## PR Checklist
 
-- [ ] Tests pass: `npm test` (current floor: 127)
+- [ ] Tests pass: `npm test` (current floor: 161)
 - [ ] Benchmark passes: `node test/benchmark.js` (12/12)
 - [ ] If you touched repair logic: re-run `node scripts/shadow-bench.js` and commit the updated `bench-results.json`
 - [ ] If you touched `src/index.js` / `src/index.mjs` / `src/index.d.ts`: update all three; `test/integration/dual-export.test.js` must still pass
