@@ -128,11 +128,19 @@
 
 ### 方式一：一键脚本（推荐）
 
+**macOS / Linux：**
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.sh | sh
 ```
 
-会克隆到 `~/.toolrepair`，将 `toolrepair` 软链到 `~/.local/bin/`，并对自动检测到的平台运行 `toolrepair install`。卸载：`rm -rf ~/.toolrepair ~/.local/bin/toolrepair`。
+**Windows（PowerShell）：**
+
+```powershell
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.ps1 | iex"
+```
+
+会克隆到 `~/.toolrepair`，创建 `toolrepair` 命令，并对自动检测到的平台运行 `toolrepair install`。卸载：`rm -rf ~/.toolrepair ~/.local/bin/toolrepair`（macOS/Linux）或 `Remove-Item -Recurse -Force ~/.toolrepair, ~/.local/bin/toolrepair.cmd`（Windows）。
 
 ### 方式二：`npx` 直接拉 GitHub 仓库
 
@@ -174,7 +182,7 @@ toolrepair install --force                  # 强制重装（先卸载再安装�
 
 `install.sh` 默认自动检测双平台。一开始就要单装，请用方式二（`npx --package=github:... toolrepair install --platform <p>`）。
 
-> **LLM 优先：** 复制这段话给你的 AI agent："从 GitHub 安装 ahmad-awais-deepseek-v4-toolrepair：`curl -fsSL https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.sh | sh`。"
+> **LLM 优先：** 复制这段话给你的 AI agent："从 GitHub 安装 ahmad-awais-deepseek-v4-toolrepair。" macOS/Linux 执行 `curl -fsSL https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.sh | sh`，Windows 执行 `powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/TeFuirnever/ahmad-awais-deepseek-v4-toolrepair/main/install.ps1 | iex"`。
 
 ## 验证
 
@@ -186,7 +194,12 @@ toolrepair verify
 
 ```bash
 toolrepair uninstall                              # 用 install.sh / npm link 安装的
-rm -rf ~/.toolrepair ~/.local/bin/toolrepair      # 彻底清掉 install.sh 装的痕迹
+rm -rf ~/.toolrepair ~/.local/bin/toolrepair      # macOS/Linux
+```
+
+```powershell
+# Windows（PowerShell）
+Remove-Item -Recurse -Force "$env:USERPROFILE\.toolrepair", "$env:USERPROFILE\.local\bin\toolrepair.cmd"
 ```
 
 ## 原理
@@ -268,13 +281,13 @@ rm -rf ~/.toolrepair ~/.local/bin/toolrepair      # 彻底清掉 install.sh 装�
 
 | 指标 | 数值 |
 |---|---|
-| 测试 | 127 / 127 ✅ |
+| 测试 | 161 / 161 ✅ |
 | Benchmark 场景 | 12 / 12 — 100% 成功率 ✅ |
 | 影子基准（录制语料） | 32 / 33 — 基线 21.2% → 修复 97.0% ✅ |
 | 行覆盖率 | 100% ✅ |
 | 函数覆盖率 | 100% ✅ |
 | 运行时依赖 | 0 |
-| 支持工具 | 12（`read_file`、`write_to_file`、`edit_file`、`search_content`、`execute_command`、`list_files`、`Read`、`Bash`、`Glob`、`Grep`、`TodoWrite`、`WebFetch`） |
+| 支持工具 | 19（`read_file`、`write_to_file`、`edit_file`、`search_content`、`execute_command`、`list_files`、`Read`、`Bash`、`Glob`、`Grep`、`TodoWrite`、`WebFetch`、`read`、`glob`、`grep`、`edit`、`write`、`todowrite`、`webfetch`） |
 
 ## 参与贡献
 
