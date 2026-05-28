@@ -7,15 +7,17 @@
     "negative_control": "inputs that SHOULD be rejected — any acceptance signals over-eager repair",
     "live_api_status": "deferred to v1.1.0 — see ROADMAP"
   },
-  "startedAt": "2026-05-26T02:21:15.798Z",
-  "finishedAt": "2026-05-26T02:21:15.799Z",
+  "startedAt": "2026-05-28T08:08:53.727Z",
+  "finishedAt": "2026-05-28T08:08:53.728Z",
   "totals": {
     "corpus_size": 33,
     "baseline_accepted": 7,
     "baseline_rate": 0.212,
-    "repaired_accepted": 32,
-    "repaired_rate": 0.97,
-    "uplift_points": 0.758,
+    "fix_applied_count": 26,
+    "fix_applied_rate": 0.788,
+    "repaired_accepted": 33,
+    "repaired_rate": 1,
+    "uplift_points": 0.788,
     "negative_corpus_size": 13,
     "negative_correctly_rejected": 13,
     "negative_false_accepts": 0,
@@ -60,9 +62,9 @@
     "relational-offset-no-limit": {
       "total": 2,
       "baseline_accepted": 0,
-      "repaired_accepted": 1,
+      "repaired_accepted": 2,
       "baseline_rate": 0,
-      "repaired_rate": 0.5
+      "repaired_rate": 1
     },
     "relational-limit-no-offset": {
       "total": 1,
@@ -90,9 +92,9 @@
     "qwen": {
       "total": 6,
       "baseline_accepted": 0,
-      "repaired_accepted": 5,
+      "repaired_accepted": 6,
       "baseline_rate": 0,
-      "repaired_rate": 0.833
+      "repaired_rate": 1
     },
     "glm": {
       "total": 5,

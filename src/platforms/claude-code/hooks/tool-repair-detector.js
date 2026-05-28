@@ -56,7 +56,50 @@ function main() {
   });
 }
 
+// Tools DeepSeek historically breaks format on (known from shadow-bench corpus).
+// Only these tools get unconditional detection; others skip when the error
+// clearly looks like a real execution failure (fail-safe: unknown -> run).
+const FORMAT_ERROR_SENSITIVE_TOOLS = new Set([
+  'read_file', 'Read', 'write_to_file', 'edit_file', 'execute_command', 'list_files'
+]);
+
+// POSIX/OS error patterns only — deliberately excludes bare "Error:" to avoid
+// matching ZodError, TypeError, SyntaxError etc. which may indicate format errors.
+const EXECUTION_ERROR_PATTERNS = [
+  /command not found/i,
+  /No such file/i,
+  /Permission denied/i,
+  /ENOENT/,
+  /EACCES:/,
+  /EISDIR:/,
+  /EPERM:/,
+  /EEXIST:/,
+  /ENOTDIR:/,
+  /EMFILE:/,
+  /ECONNREFUSED/,
+  /ETIMEDOUT/,
+  /fetch failed/i,
+];
+
+function isLikelyExecutionError(errorOutput) {
+  return EXECUTION_ERROR_PATTERNS.some(p => p.test(errorOutput));
+}
+
 function detectAndGenerateGuidance(toolName, toolInput, errorOutput) {
+  // Fast-filter: skip detection only when BOTH:
+  // 1. Tool is NOT in the format-error-sensitive set, AND
+  // 2. Error output matches known execution error patterns
+  // Unknown tools + unknown error patterns → run full detection (fail-safe)
+  if (!FORMAT_ERROR_SENSITIVE_TOOLS.has(toolName) && isLikelyExecutionError(errorOutput)) {
+    console.error(JSON.stringify({
+      event: 'hook_detection_skipped',
+      tool: toolName,
+      reason: 'execution_error',
+      timestamp: new Date().toISOString(),
+    }));
+    return null; // null → main() outputs {"continue":true} passthrough
+  }
+
   const patterns = [];
   const suggestions = [];
 
@@ -106,4 +149,8 @@ function detectAndGenerateGuidance(toolName, toolInput, errorOutput) {
   };
 }
 
-main();
+if (require.main === module) {
+  main();
+} else {
+  module.exports = { detectAndGenerateGuidance, isLikelyExecutionError, FORMAT_ERROR_SENSITIVE_TOOLS, EXECUTION_ERROR_PATTERNS };
+}

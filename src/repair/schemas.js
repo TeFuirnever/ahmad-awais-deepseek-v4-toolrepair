@@ -29,7 +29,8 @@ const toolSchemas = {
     requires_approval: 'boolean',
   },
   list_files: {
-    target_directory: 'path!',
+    target_directory: 'path',
+    path: 'path',
     depth: 'number',
     offset: 'number',
     limit: 'number',

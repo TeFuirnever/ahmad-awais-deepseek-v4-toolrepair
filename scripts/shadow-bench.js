@@ -118,13 +118,16 @@ function run() {
 
   let baselineAccept = 0;
   let repairedAccept = 0;
+  let fixAppliedCount = 0;
 
   for (const entry of CORPUS) {
     const baseline = baselineAccepted(entry.tool, deepClone(entry.input));
     const result = isAccepted(entry.tool, deepClone(entry.input));
+    const repairResult = validateAndRepair(entry.tool, deepClone(entry.input));
 
     if (baseline) baselineAccept++;
     if (result.accepted) repairedAccept++;
+    if (repairResult.repaired) fixAppliedCount++;
 
     bump(byPattern, entry.pattern, baseline, result.accepted);
     bump(byTag, entry.tag, baseline, result.accepted);
@@ -169,6 +172,8 @@ function run() {
       corpus_size: total,
       baseline_accepted: baselineAccept,
       baseline_rate: round(baselineAccept / total),
+      fix_applied_count: fixAppliedCount,
+      fix_applied_rate: round(fixAppliedCount / total),
       repaired_accepted: repairedAccept,
       repaired_rate: round(repairedAccept / total),
       uplift_points: round((repairedAccept - baselineAccept) / total),

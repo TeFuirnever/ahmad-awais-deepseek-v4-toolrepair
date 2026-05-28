@@ -184,6 +184,39 @@ describe('validateAndRepair — list_files relational', () => {
   });
 });
 
+describe('validateAndRepair — list_files schema (v1.1.1: accepts both target_directory and path)', () => {
+  it('accepts path field (Qwen pattern) with relational repair', () => {
+    const r = validateAndRepair('list_files', {
+      path: '/tmp',
+      offset: 50,
+    });
+    assert.strictEqual(r.repaired, true);
+    assert.strictEqual(r.errors.length, 0);
+    assert.strictEqual(r.input.limit, 2000);
+  });
+
+  it('accepts target_directory field (existing behavior preserved)', () => {
+    const r = validateAndRepair('list_files', {
+      target_directory: '/tmp',
+      offset: 50,
+    });
+    assert.strictEqual(r.repaired, true);
+    assert.strictEqual(r.errors.length, 0);
+    assert.strictEqual(r.input.limit, 2000);
+  });
+
+  it('passes with neither directory field (defaults to CWD)', () => {
+    const r = validateAndRepair('list_files', { offset: 0 });
+    assert.strictEqual(r.errors.length, 0);
+  });
+
+  it('accepts path field without relational repair needed', () => {
+    const r = validateAndRepair('list_files', { path: '/tmp' });
+    assert.strictEqual(r.errors.length, 0);
+    assert.strictEqual(r.passThrough, true);
+  });
+});
+
 describe('validateAndRepair — required field validation', () => {
   it('reports error when required file_path is missing', () => {
     const r = validateAndRepair('read_file', {});
