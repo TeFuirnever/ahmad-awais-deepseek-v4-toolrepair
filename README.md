@@ -81,8 +81,8 @@ Two benchmarks, same methodology (schema-validation oracle). Raw counts committe
 | Pass | Accepted | Rate |
 |---|---|---|
 | Baseline (no repair) | 7 / 33 | **21.2%** |
-| Repaired (this lib)  | 32 / 33 | **97.0%** |
-| **Uplift** | +25 | **+75.8 pts** |
+| Repaired (this lib)  | 33 / 33 | **100%** |
+| **Uplift** | +26 | **+78.8 pts** |
 
 Reproduce: `node scripts/shadow-bench.js`.
 
@@ -364,7 +364,7 @@ Rationale: consumers depend on the repaired *output*, not just on "did it pass."
 |---|---|
 | Tests | 161 / 161 ✅ |
 | Benchmark scenarios | 12 / 12 — 100% success ✅ |
-| Shadow bench (recorded corpus) | 32 / 33 — baseline 21.2% → repaired 97.0% ✅ |
+| Shadow bench (recorded corpus) | 33 / 33 — baseline 21.2% → repaired 100% ✅ |
 | Line coverage | 100% ✅ |
 | Function coverage | 100% ✅ |
 | Runtime dependencies | 0 |
