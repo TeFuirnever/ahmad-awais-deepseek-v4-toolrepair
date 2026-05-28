@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.1.1 — 2026-05-28
+
+Patch polish release. Shadow benchmark 100% (33/33) across all 8 patterns, hook waste elimination, staged benchmark reporting.
+
+### Fixed
+
+- **`list_files` schema** — accepts both `target_directory` and `path` (neither required). Fixes the Qwen `relational-offset-no-limit` benchmark entry that used `path` instead of `target_directory`, which the relational fixer correctly handled but the validator rejected due to the required-field mismatch. Both fields are `path`-typed, so autolink detection and security guards apply to both.
+
+### Changed
+
+- **Hook pre-filter** — fast whitelist filter skips pattern detection for known execution errors (POSIX codes, `command not found`, `ENOENT`, etc.) on non-sensitive tools. Over 57 real-world PostToolUseFailure triggers, 100% were legitimate tool errors — zero DeepSeek format errors. Pre-filter eliminates wasted parse+match cycles while preserving full detection as a safety net for format-error-sensitive tools and unknown error patterns (fail-safe).
+
+### Added
+
+- **Staged benchmark reporting** — `fix_applied_rate` tracks whether repair fired, `repaired_rate` tracks whether the final payload passed the oracle. Makes it possible to distinguish "repair didn't fire" from "repair fired but validator rejected".
+- **19 new tests** — 4 `list_files` schema tests (path field, target_directory, neither, both) + 15 hook pre-filter unit tests (execution patterns, format error non-detection, tool sensitivity set).
+
 ## 1.0.2 — 2026-05-26
 
 **BREAKING-FIX for OpenCode users.** v1.0.0 and v1.0.1 shipped an OpenCode plugin whose `tool.execute.before` hook used the wrong signature — it read `input.parameters` while the real OpenCode API passes args via `output.args`. Result: the repair layer never fired on OpenCode. All 109 prior tests passed because they exercised the `validateAndRepair` pure function, never the plugin-hook integration. Users on v1.0.0 / v1.0.1 should upgrade. Claude Code path (CLAUDE.md rules + PostToolUseFailure hook) was unaffected.
