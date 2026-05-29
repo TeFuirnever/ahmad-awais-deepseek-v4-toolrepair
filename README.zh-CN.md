@@ -20,6 +20,7 @@
 
 > "一个修复层。开源模型在我们的工具调用评估中现在能击败 Opus 4.7。"
 > — [Ahmad Awais (@MrAhmadAwais)](https://x.com/MrAhmadAwais/status/2050956678502420612)
+<img width="1244" height="1088" alt="image" src="https://github.com/user-attachments/assets/7e494e58-75de-49d6-92fc-7e67a9a431d4" />
 
 <details>
 <summary>X/Twitter 链接打不开？（需翻墙）点击展开完整引用与上下文</summary>
