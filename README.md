@@ -53,6 +53,7 @@ Based on [Ahmad Awais](https://x.com/MrAhmadAwais)'s research: a tool-input repa
 
 > "One repair layer. Open models now beat Opus 4.7 in our tool-calling evals."
 > — [Ahmad Awais (@MrAhmadAwais)](https://x.com/MrAhmadAwais/status/2050956678502420612)
+<img width="1244" height="1088" alt="image" src="https://github.com/user-attachments/assets/2c9b9016-a801-4baf-b6e7-b47a5ca9ff48" />
 
 <details>
 <summary>If the X/Twitter link is unreachable (region-blocked), click for the full quote and context</summary>
